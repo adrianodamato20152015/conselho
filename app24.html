@@ -1343,15 +1343,15 @@
     }
 
     function irParaTela(tela) {
-  document.querySelectorAll('.tela').forEach(t => t.classList.remove('active'));
-  if(tela === 'principal') {
-    document.getElementById('telaPrincipal').classList.add('active');
-  } else if(tela === 'analises') {
-    document.getElementById('telaAnalises').classList.add('active');
-    gerarAnalises(); // <-- LINHA ADICIONADA
-  }
-  toggleMenu();
-}
+      document.querySelectorAll('.tela').forEach(t => t.classList.remove('active'));
+      if(tela === 'principal') {
+        document.getElementById('telaPrincipal').classList.add('active');
+      } else if(tela === 'analises') {
+        document.getElementById('telaAnalises').classList.add('active');
+        gerarAnalises();
+      }
+      toggleMenu();
+    }
 
     // ============================================
     // MODO EDIÇÃO
@@ -2615,13 +2615,14 @@
     }
 
     function toggleComponentes(btn) {
-  const gt = btn.closest('.gt-card');
-  const comp = gt.querySelector('.gt-componentes');
-  if(comp) {
-    comp.classList.toggle('show');
-    btn.textContent = comp.classList.contains('show') ? '🔼 Ocultar Componentes' : '👥 Ver Componentes';
-  }
-}
+      const gt = btn.closest('.gt-card');
+      const comp = gt.querySelector('.gt-componentes');
+      if(comp) {
+        comp.classList.toggle('show');
+        btn.textContent = comp.classList.contains('show') ? '🔼 Ocultar Componentes' : '👥 Ver Componentes';
+      }
+    }
+    
     // ============================================
     // SALVAR / CARREGAR JSON
     // ============================================
