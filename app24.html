@@ -1,0 +1,3109 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Gestão de Conselho Consultivo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); 
+      padding: 15px; 
+      transition: background 0.5s;
+      font-size: 14px;
+    }
+    
+    .tela { display: none; } 
+    .tela.active { display: block; }
+
+    /* CONTADOR DE SETORES E CADEIRAS */
+    .grupo-contador {
+      text-align: center;
+      font-size: 0.95em;
+      color: #495057;
+      background: rgba(255,255,255,0.7);
+      padding: 8px 15px;
+      border-radius: 8px;
+      margin: 10px 0 15px 0;
+      border: 2px dashed #dee2e6;
+      font-weight: 600;
+    }
+    .grupo-contador span {
+      margin: 0 12px;
+    }  
+
+    /* MENU */
+    .menu-btn { 
+      position: fixed; top: 15px; left: 15px; z-index: 1000; 
+      background: white; border: none; padding: 10px 18px; 
+      border-radius: 8px; cursor: pointer; font-size: 1.1em; 
+      font-weight: bold; box-shadow: 0 3px 10px rgba(0,0,0,0.3); 
+      transition: all 0.3s; 
+    }
+    .menu-btn:hover { transform: translateY(-2px); }
+    
+    .menu-dropdown { 
+      position: fixed; top: 60px; left: 15px; z-index: 999; 
+      background: white; border-radius: 8px; 
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3); 
+      padding: 8px; display: none; min-width: 200px; 
+    }
+    .menu-dropdown.active { display: block; }
+    .menu-item { 
+      padding: 10px 14px; cursor: pointer; border-radius: 6px; 
+      transition: all 0.2s; display: flex; align-items: center; 
+      gap: 10px; font-size: 0.95em;
+    }
+    .menu-item:hover { background: #f0f0f0; }
+    #menuCancelarEdicao { background: #ff6b6b !important; color: white !important; display: none; }
+    #menuCancelarEdicao:hover { background: #fa5252 !important; }
+    
+    /* INDICADORES */
+    .edit-indicator { 
+      position: fixed; top: 15px; right: 15px; 
+      background: #51cf66; color: white; 
+      padding: 8px 16px; border-radius: 8px; 
+      font-weight: bold; font-size: 0.9em;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.3); 
+      display: none; z-index: 1000; 
+    }
+    .edit-indicator.active { display: block; animation: pulse 2s infinite; }
+    
+    .btn-cancelar-edicao { 
+      position: fixed; top: 60px; right: 15px; 
+      background: #ff6b6b; color: white; 
+      padding: 10px 20px; border-radius: 8px; 
+      font-weight: bold; font-size: 0.9em;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.3); 
+      display: none; z-index: 1000; cursor: pointer; 
+      border: none; transition: all 0.3s; 
+    }
+    .btn-cancelar-edicao:hover { transform: translateY(-2px); background: #fa5252; }
+    .btn-cancelar-edicao.active { display: block; }
+    
+    .reuniao-indicator { 
+      position: fixed; top: 60px; right: 15px; 
+      background: #51cf66; color: white; 
+      padding: 8px 16px; border-radius: 8px; 
+      font-weight: bold; font-size: 0.9em;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.3); 
+      display: none; z-index: 1000; 
+    }
+    .reuniao-indicator.active { display: block; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+    
+    /* BOTÕES REUNIÃO */
+    .btn-concluir-reuniao, .btn-abortar-reuniao { 
+      position: fixed; bottom: 25px; 
+      background: #51cf66; color: white; 
+      padding: 12px 30px; border-radius: 10px; 
+      font-weight: bold; font-size: 1em;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4); 
+      display: none; z-index: 1000; cursor: pointer; 
+      border: none; transition: all 0.3s; 
+    }
+    .btn-concluir-reuniao { left: 50%; transform: translateX(-50%); }
+    .btn-abortar-reuniao { 
+      left: 50%; transform: translateX(calc(-50% - 170px)); 
+      background: #ff6b6b; 
+    }
+    .btn-concluir-reuniao:hover, .btn-abortar-reuniao:hover { 
+      transform: translateX(-50%) translateY(-3px); 
+    }
+    .btn-abortar-reuniao:hover { 
+      transform: translateX(calc(-50% - 170px)) translateY(-3px); 
+    }
+    .btn-concluir-reuniao.active, .btn-abortar-reuniao.active { 
+      display: block; animation: pulse 2s infinite; 
+    }
+    
+    /* CANETINHA EDITAR REUNIÃO */
+    .canetinha-editar-reuniao { 
+      display: none; cursor: pointer; font-size: 1em;
+      margin-left: 4px; transition: transform 0.2s; 
+    }
+    .canetinha-editar-reuniao:hover { transform: scale(1.3); }
+    .edit-mode .cadeira.presidencia .canetinha-editar-reuniao { display: inline-block; }
+    
+    /* MODO EDIÇÃO */
+    .edit-mode .editable { 
+      border: 2px dashed #667eea !important; 
+      cursor: text; min-height: 15px; 
+      padding: 2px 4px;
+    }
+    .edit-mode .editable:hover { background: rgba(102, 126, 234, 0.1); }
+    .edit-mode .btn-add-setor, 
+    .edit-mode .btn-add-cadeira, 
+    .edit-mode .btn-remove, 
+    .edit-mode .btn-add-gt, 
+    .edit-mode .btn-add-atividade, 
+    .edit-mode .btn-edit-atividade, 
+    .edit-mode .btn-edit-gt,
+    .edit-mode .btn-remover-camara,
+    .edit-mode .btn-editar-nome-camara,
+    .edit-mode .btn-add-membro { 
+      display: inline-block !important; 
+    }
+    
+    .btn-add-setor, .btn-add-cadeira, .btn-remove, 
+    .btn-add-gt, .btn-add-atividade, 
+    .btn-edit-atividade, .btn-edit-gt, .btn-add-membro { 
+      display: none; padding: 5px 10px; 
+      background: #667eea; color: white; 
+      border: none; border-radius: 5px; 
+      cursor: pointer; font-size: 0.8em; 
+      margin: 4px; transition: all 0.2s; 
+    }
+    .btn-remove { background: #ff6b6b; }
+    .btn-add-gt, .btn-add-atividade, .btn-add-membro { background: #51cf66; }
+    .btn-edit-atividade, .btn-edit-gt { background: #ffa726; }
+    /* BOTÕES CÂMARA */
+    .btn-criar-camara {
+      display: none;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white; border: none;
+      padding: 12px 24px; border-radius: 8px;
+      font-size: 1em; font-weight: bold;
+      cursor: pointer; margin: 15px auto;
+      box-shadow: 0 3px 12px rgba(102, 126, 234, 0.4);
+      transition: all 0.3s;
+    }
+    .btn-criar-camara:hover { transform: translateY(-2px); }
+    .edit-mode .btn-criar-camara { display: block; }
+    
+    .btn-remover-camara, .btn-editar-nome-camara {
+      display: none;
+      background: #ff6b6b; color: white;
+      border: none; padding: 6px 12px;
+      border-radius: 5px; font-size: 0.8em;
+      font-weight: bold; cursor: pointer;
+      margin-left: 8px; transition: all 0.2s;
+    }
+    .btn-editar-nome-camara { background: #ffa726; }
+    .btn-remover-camara:hover { background: #fa5252; transform: scale(1.05); }
+    .btn-editar-nome-camara:hover { background: #ff9800; transform: scale(1.05); }
+    
+    /* MODAIS */
+    .modal { 
+      display: none; position: fixed; z-index: 2000; 
+      left: 0; top: 0; width: 100%; height: 100%; 
+      background-color: rgba(0,0,0,0.7); 
+    }
+    .modal.active { 
+      display: flex; align-items: center; 
+      justify-content: center; 
+    }
+    .modal-content { 
+      background: white; padding: 25px; 
+      border-radius: 12px; max-width: 650px; 
+      width: 90%; max-height: 85vh; overflow-y: auto; 
+    }
+    .modal-header { 
+      font-size: 1.4em; font-weight: bold; 
+      margin-bottom: 18px; color: #2c3e50; 
+    }
+    .modal-input, .modal-select, .modal-textarea { 
+      width: 100%; padding: 10px; margin-bottom: 12px; 
+      border: 2px solid #ddd; border-radius: 8px; 
+      font-size: 0.95em; 
+    }
+    .modal-textarea { min-height: 80px; resize: vertical; }
+    .modal-btn { 
+      padding: 10px 20px; border: none; 
+      border-radius: 8px; cursor: pointer; 
+      font-size: 0.95em; font-weight: bold; 
+      margin-right: 8px; transition: all 0.3s; 
+    }
+    .modal-btn-primary { background: #667eea; color: white; }
+    .modal-btn-primary:hover { background: #5568d3; }
+    .modal-btn-secondary { background: #e0e0e0; color: #333; }
+    .modal-btn-secondary:hover { background: #d0d0d0; }
+    .modal-label { 
+      font-weight: bold; margin-bottom: 4px; 
+      display: block; color: #495057; font-size: 0.9em;
+    }
+    
+    /* PALETA DE CORES */
+    .color-picker-grid { 
+      display: grid; grid-template-columns: repeat(4, 1fr); 
+      gap: 8px; margin: 15px 0; 
+    }
+    .color-option { 
+      width: 55px; height: 55px; border-radius: 8px; 
+      cursor: pointer; border: 3px solid transparent; 
+      transition: all 0.2s; 
+    }
+    .color-option:hover { transform: scale(1.1); border-color: #2c3e50; }
+    
+    /* GALERIA DE EMOJIS */
+    .emoji-grid { 
+      display: grid; grid-template-columns: repeat(8, 1fr); 
+      gap: 8px; margin: 15px 0; max-height: 250px; 
+      overflow-y: auto; 
+    }
+    .emoji-option { 
+      font-size: 2.2em; cursor: pointer; 
+      text-align: center; padding: 6px; 
+      border-radius: 8px; transition: all 0.2s; 
+    }
+    .emoji-option:hover { background: #f0f0f0; transform: scale(1.2); }
+    
+    /* HEADER COMPACTO */
+    .header { text-align: center; color: white; margin: 35px 0 15px; }
+    .header h1 { 
+      font-size: 2em; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); 
+      margin-bottom: 8px; 
+    }
+    .header p { font-size: 1em; margin-bottom: 4px; }
+    .reuniao-info { 
+      font-size: 0.95em; color: #fff; 
+      background: rgba(255,255,255,0.2); 
+      padding: 8px 16px; border-radius: 8px; 
+      display: inline-block; margin-top: 8px; 
+    }
+    .reuniao-info span { font-weight: bold; }
+    .edit-mode .reuniao-info .editable-inline { 
+      border-bottom: 2px dashed #fff; 
+      cursor: text; padding: 2px 5px; 
+    }
+    
+    .main-content { max-width: 1600px; margin: 0 auto; }
+    .container { display: flex; gap: 15px; margin-bottom: 15px; }
+    
+    /* SISTEMA DE COLLAPSE/ACORDEÃO */
+    .presidencia-container {
+      max-width: 700px; 
+      margin: 0 auto 20px;
+    }
+    
+    .presidencia-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 12px;
+      padding: 15px 20px;
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.35);
+      border: 3px solid #ffffff;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .presidencia-header:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+    }
+    
+    .presidencia-titulo {
+      color: white;
+      font-size: 1.3em;
+      font-weight: bold;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .presidencia-seta {
+      color: white;
+      font-size: 1.5em;
+      transition: transform 0.3s;
+    }
+    
+    .presidencia-header.active .presidencia-seta {
+      transform: rotate(180deg);
+    }
+    
+    .presidencia-conteudo {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease-out;
+      background: white;
+      border-radius: 0 0 12px 12px;
+      margin-top: -10px;
+      padding-top: 10px;
+    }
+    
+    .presidencia-conteudo.active {
+      max-height: 500px;
+      padding: 15px;
+      border: 3px solid #667eea;
+      border-top: none;
+    }
+    
+    /* Grupos colapsáveis */
+    .grupo { 
+      flex: 1; background: white; 
+      border-radius: 10px; padding: 18px; 
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2); 
+      max-height: none;
+    }
+    
+    .grupo-header {
+      cursor: pointer;
+      transition: all 0.3s;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    
+    .grupo-header:hover {
+      background: rgba(102, 126, 234, 0.1);
+    }
+    
+    .titulo-grupo { 
+      font-size: 1.6em; font-weight: bold; 
+      padding: 12px; border-radius: 8px; 
+      color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); 
+      flex: 1;
+    }
+    
+    .grupo:first-child .titulo-grupo { 
+      background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%); 
+    }
+    .grupo:last-child .titulo-grupo { 
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); 
+    }
+    
+    .grupo-seta {
+      font-size: 1.5em;
+      transition: transform 0.3s;
+      color: #667eea;
+      margin-right: 10px;
+    }
+    
+    .grupo-header.active .grupo-seta {
+      transform: rotate(180deg);
+    }
+    
+    .grupo-conteudo {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.5s ease-out;
+    }
+    
+    .grupo-conteudo.active {
+      max-height: 10000px;
+    }
+    
+    /* Setores colapsáveis */
+    .setor { 
+      margin-bottom: 25px;
+      border-left: 3px solid #667eea; 
+      padding-left: 12px; 
+      position: relative; 
+    }
+    
+    .setor-header-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+      padding: 8px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+    
+    .setor-header-wrapper:hover {
+      background: rgba(102, 126, 234, 0.1);
+    }
+    
+    .setor-seta {
+      font-size: 1.2em;
+      transition: transform 0.3s;
+      color: #667eea;
+      min-width: 20px;
+    }
+    
+    .setor-header-wrapper.active .setor-seta {
+      transform: rotate(180deg);
+    }
+    
+    .titulo-setor { 
+      font-size: 1em; font-weight: bold; 
+      color: #2c3e50; 
+      display: flex; align-items: center; 
+      gap: 10px; flex-wrap: wrap; 
+      flex: 1;
+    }
+    
+    .contador-cadeiras { 
+      background: #667eea; color: white; 
+      padding: 3px 10px; border-radius: 15px; 
+      font-size: 0.7em; 
+    }
+    
+    .setor-conteudo {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.5s ease-out;
+    }
+    
+    .setor-conteudo.active {
+      max-height: 5000px;
+      margin-top: 10px;
+    }
+    
+    /* Animações suaves */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .presidencia-conteudo.active,
+    .grupo-conteudo.active,
+    .setor-conteudo.active {
+      animation: fadeIn 0.3s;
+    }
+    
+    /* CADEIRAS COMPACTAS */
+    .cadeira { 
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); 
+      border-radius: 10px; padding: 12px; 
+      margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); 
+      border: 2px solid #dee2e6; 
+    }
+    /* LAYOUT LADO A LADO - TITULAR E SUPLENTE */
+    .cadeira-membros-container {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .cadeira-membros-container .membro-linha {
+      flex: 1;
+      min-width: 280px;
+    }
+
+    @media (max-width: 768px) {
+      .cadeira-membros-container {
+        flex-direction: column;
+      }
+      .cadeira-membros-container .membro-linha {
+        min-width: 100%;
+      }
+    }
+    
+    .cadeira.presidencia { 
+      border: 3px solid #667eea; 
+      background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%); 
+    }
+    .cadeira-header { 
+      display: flex; align-items: center; 
+      gap: 10px; margin-bottom: 12px; 
+      padding-bottom: 10px; border-bottom: 2px dashed #dee2e6; 
+    }
+    .icone-cadeira { font-size: 2em; }
+    .numero-cadeira { font-size: 1em; font-weight: bold; color: #495057; }
+    
+    /* MEMBROS COMPACTOS */
+    .membro-linha { 
+      display: flex; flex-direction: column; 
+      gap: 6px; padding: 10px; margin-bottom: 6px; 
+      border-radius: 8px; transition: all 0.2s; 
+      cursor: move; 
+    }
+    .membro-linha.titular { border-left: 3px solid #1976d2; }
+    .membro-linha.suplente { border-left: 3px solid #f57c00; }
+    .membro-linha[data-estado="MA"] { 
+      background: linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%); 
+    }
+    .membro-linha[data-estado="PI"] { 
+      background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); 
+    }
+    .membro-linha[data-estado="CE"] { 
+      background: linear-gradient(135deg, #FFE0E0 0%, #FFCDD2 100%); 
+    }
+    .membro-linha.vazio { 
+      background: #f5f5f5; border-left: 3px solid #ccc; 
+      opacity: 0.6; 
+    }
+    .membro-linha.dragging { opacity: 0.5; }
+    .membro-linha-top { display: flex; align-items: center; gap: 10px; }
+    
+    /* AVATAR COMPACTO */
+    .avatar-container { display: flex; align-items: center; gap: 6px; }
+    .bonequinho, .logo-instituicao { 
+      font-size: 2.5em; min-width: 42px; 
+      width: 42px; height: 42px; text-align: center; 
+      cursor: pointer; position: relative; 
+      overflow: hidden; border-radius: 50%; 
+      display: flex; align-items: center; 
+      justify-content: center; border: 2px solid #dee2e6; 
+      transition: all 0.2s; background: white; 
+    }
+    .bonequinho:hover, .logo-instituicao:hover { 
+      transform: scale(1.1); border-color: #667eea; 
+    }
+    .bonequinho img, .logo-instituicao img { 
+      width: 100%; height: 100%; 
+      object-fit: cover; border-radius: 50%; 
+    }
+    
+    .etiqueta-cargo { 
+      background: #495057; color: white; 
+      padding: 3px 8px; border-radius: 5px; 
+      font-size: 0.7em; font-weight: bold; 
+      text-transform: uppercase; min-width: 70px; 
+      text-align: center; 
+    }
+    .etiqueta-cargo.titular { background: #1976d2; }
+    .etiqueta-cargo.suplente { background: #f57c00; }
+    
+    .info-membro { flex: 1; }
+    .nome-membro { 
+      font-weight: bold; font-size: 0.95em; 
+      color: #212529; margin-bottom: 3px; 
+    }
+    .entidade-membro { 
+      font-size: 0.8em; color: #6c757d; 
+      font-style: italic; margin-bottom: 2px; 
+    }
+    .municipio-membro { font-size: 0.75em; color: #868e96; }
+    
+    .btn-ver-curriculo { 
+      background: #667eea; color: white; 
+      border: none; padding: 3px 8px; 
+      border-radius: 4px; cursor: pointer; 
+      font-size: 0.7em; margin-top: 4px; 
+      display: inline-block; 
+    }
+    .btn-ver-curriculo::after { content: '📄 Ver Currículo'; }
+    .edit-mode .btn-ver-curriculo::after { content: '📄 Ver/Editar'; }
+    
+    /* PRESENÇAS COMPACTAS */
+    .presenca-container { 
+      display: flex; gap: 5px; margin-top: 6px; 
+      align-items: center; flex-wrap: wrap; 
+    }
+    .presenca-label { 
+      font-size: 0.7em; color: #6c757d; 
+      font-weight: bold; margin-right: 4px; 
+    }
+    .bolinha-presenca { 
+      width: 18px; height: 18px; border-radius: 50%; 
+      border: 2px solid #dee2e6; background: white; 
+      cursor: pointer; transition: all 0.2s; 
+      position: relative; 
+    }
+    .edit-mode .bolinha-presenca:hover { 
+      transform: scale(1.3); border-color: #667eea; 
+    }
+    .bolinha-presenca.verde { background: #51cf66; border-color: #37b24d; }
+    .bolinha-presenca.amarelo { background: #ffd43b; border-color: #fab005; }
+    .bolinha-presenca.vermelho { background: #ff6b6b; border-color: #fa5252; }
+    
+    /* CÂMARAS COMPACTAS */
+    .camaras-container { 
+      background: white; border-radius: 10px; 
+      padding: 20px; box-shadow: 0 6px 20px rgba(0,0,0,0.2); 
+    }
+    .camaras-titulo { 
+      font-size: 1.6em; font-weight: bold; 
+      text-align: center; margin-bottom: 18px; 
+      color: #2c3e50; padding: 10px; 
+      background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%); 
+      border-radius: 8px; 
+    }
+    .camaras-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+      gap: 12px; 
+    }
+    .camara { 
+      background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%); 
+      border-radius: 10px; padding: 16px; 
+      min-height: 180px; transition: all 0.3s; 
+    }
+    .camara.drag-over { 
+      background: linear-gradient(135deg, #55efc4 0%, #00b894 100%); 
+      transform: scale(1.02); 
+      box-shadow: 0 0 25px rgba(0, 184, 148, 0.6); 
+    }
+    .camara-header { 
+      display: flex; justify-content: space-between; 
+      align-items: center; margin-bottom: 12px; 
+      padding-bottom: 10px; 
+      border-bottom: 2px solid rgba(255,255,255,0.3); 
+    }
+    .camara-nome { 
+      font-size: 1.15em; font-weight: bold; 
+      color: white; flex: 1;
+    }
+    .camara-contador { 
+      background: rgba(255,255,255,0.9); 
+      color: #6c5ce7; font-weight: bold; 
+      padding: 5px 10px; border-radius: 15px; 
+      font-size: 0.75em;
+    }
+    .camara-membros { min-height: 50px; margin-bottom: 12px; }
+    .camara-membro { 
+      background: rgba(255,255,255,0.95); 
+      border-radius: 8px; padding: 8px 10px; 
+      margin-bottom: 6px; display: flex; 
+      align-items: center; gap: 8px; 
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+    }
+    .camara-membro .bonequinho { font-size: 2em; }
+    .camara-membro .nome-membro { 
+      flex: 1; font-size: 0.85em; 
+      font-weight: bold; color: #2c3e50; 
+    }
+    
+    /* ATIVIDADES COMPACTAS */
+    .camara-atividades { margin-bottom: 12px; }
+    .atividade-card { 
+      background: linear-gradient(135deg, #d3f9d8 0%, #b2f2bb 100%); 
+      border-radius: 8px; padding: 10px; 
+      margin-bottom: 8px; border-left: 3px solid #51cf66; 
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+    }
+    .atividade-card[data-concluida="true"] { 
+      opacity: 0.8; border-left-color: #2ecc71; 
+    }
+    .atividade-card[data-concluida="false"] { 
+      border-left-color: #ffd43b; 
+    }
+    .atividade-titulo { 
+      font-weight: bold; color: #2c3e50; 
+      margin-bottom: 4px; font-size: 0.85em; 
+    }
+    .atividade-info { 
+      font-size: 0.75em; color: #495057; 
+      margin-bottom: 4px; 
+    }
+    .atividade-resultado { 
+      background: white; padding: 6px; 
+      border-radius: 4px; font-size: 0.75em; 
+      color: #2c3e50; margin-top: 6px; 
+      border-left: 3px solid #667eea; 
+    }
+    .atividade-status { 
+      margin-top: 6px; padding: 4px 8px; 
+      border-radius: 5px; font-size: 0.7em; 
+      font-weight: bold; display: inline-block; 
+    }
+    .atividade-status.concluida { background: #2ecc71; color: white; }
+    .atividade-status.nao-concluida { background: #ffd43b; color: #333; }
+    
+    /* GTs COMPACTOS */
+    .camara-gts { margin-top: 12px; }
+    .gt-card { 
+      background: rgba(255,255,255,0.95); 
+      border-radius: 8px; padding: 10px; 
+      margin-bottom: 8px; border-left: 3px solid #667eea; 
+    }
+    .gt-titulo { 
+      font-weight: bold; color: #2c3e50; 
+      margin-bottom: 4px; font-size: 0.9em;
+    }
+    .gt-responsavel { 
+      font-size: 0.8em; color: #6c757d; 
+      margin-bottom: 4px; 
+    }
+    .gt-objetivo { 
+      font-size: 0.75em; color: #495057; 
+      font-style: italic; margin-bottom: 6px; 
+    }
+    .gt-componentes { 
+      font-size: 0.75em; color: #6c757d; 
+      margin-bottom: 8px; display: none; 
+    }
+    .gt-componentes.show { display: block; }
+    .btn-ver-componentes { 
+      background: #e9ecef; color: #495057; 
+      border: none; padding: 3px 8px; 
+      border-radius: 4px; cursor: pointer; 
+      font-size: 0.75em; margin-bottom: 6px; 
+    }
+    .gt-resultado { 
+      font-size: 0.75em; color: #495057; 
+      margin-top: 6px; padding: 6px; 
+      background: #f8f9fa; border-radius: 4px; 
+      border-left: 3px solid #51cf66; 
+    }
+    .gt-atividades-internas { 
+      margin-top: 8px; padding-top: 8px; 
+      border-top: 1px dashed #dee2e6; 
+    }
+    
+    /* ANÁLISES */
+    .analises-container { 
+      background: white; border-radius: 10px; 
+      padding: 25px; max-width: 1400px; 
+      margin: 70px auto 20px; 
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2); 
+    }
+    .analises-menu { 
+      display: flex; gap: 12px; 
+      margin-bottom: 25px; flex-wrap: wrap; 
+    }
+    .analise-btn { 
+      padding: 10px 20px; background: #667eea; 
+      color: white; border: none; 
+      border-radius: 8px; cursor: pointer; 
+      font-size: 0.95em; font-weight: bold; 
+      transition: all 0.3s; 
+    }
+    .analise-btn:hover { background: #5568d3; }
+    .analise-btn.active { background: #2c3e50; }
+    .analise-content { display: none; }
+    .analise-content.active { display: block; }
+    
+    /* COMPOSIÇÃO */
+    .composicao-container { 
+      display: flex; flex-direction: column; 
+      gap: 25px; 
+    }
+    .composicao-grupo { 
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); 
+      border-radius: 10px; padding: 18px; 
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1); 
+    }
+    .composicao-grupo-titulo { 
+      font-size: 1.6em; font-weight: bold; 
+      color: #2c3e50; margin-bottom: 18px; 
+      padding-bottom: 8px; border-bottom: 3px solid #667eea; 
+    }
+    .composicao-setor { margin-bottom: 25px; }
+    .composicao-setor-titulo { 
+      font-size: 1.2em; font-weight: bold; 
+      color: #495057; margin-bottom: 12px; 
+      display: flex; align-items: center; gap: 10px; 
+    }
+    .composicao-cadeiras-info { 
+      background: #667eea; color: white; 
+      padding: 4px 12px; border-radius: 15px; 
+      font-size: 0.75em; 
+    }
+    .composicao-cadeiras-container { 
+      display: flex; flex-wrap: wrap; gap: 20px; 
+    }
+    .composicao-cadeira-bloco { 
+      display: flex; align-items: center; 
+      gap: 12px; padding: 15px; 
+      background: #f8f9fa; border-radius: 10px; 
+      border: 2px solid #dee2e6; 
+    }
+    .composicao-icone-cadeira { 
+      font-size: 3em; min-width: 60px; 
+      text-align: center; 
+    }
+    .composicao-membros-cadeira { 
+      display: flex; gap: 12px; 
+    }
+    .composicao-card { 
+      background: white; 
+      border-radius: 8px; 
+      padding: 12px; 
+      text-align: center; 
+      border: 2px solid #dee2e6; 
+      transition: all 0.3s; 
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      min-width: 140px;
+      max-width: 140px;
+    }
+    .composicao-card[data-estado="MA"] { 
+      border-color: #ffd54f; 
+      background: linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%); 
+    }
+    .composicao-card[data-estado="PI"] { 
+      border-color: #64b5f6; 
+      background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); 
+    }
+    .composicao-card[data-estado="CE"] { 
+      border-color: #ef9a9a; 
+      background: linear-gradient(135deg, #FFE0E0 0%, #FFCDD2 100%); 
+    }
+    .composicao-card:hover { 
+      transform: translateY(-3px); 
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15); 
+    }
+    .composicao-boneco { font-size: 2.5em; margin-bottom: 6px; }
+    .composicao-entidade { 
+      font-weight: bold; font-size: 0.75em; 
+      color: #2c3e50; margin-bottom: 3px; 
+      line-height: 1.3; 
+    }
+    .composicao-cargo { 
+      font-size: 0.65em; color: white; 
+      padding: 2px 6px; border-radius: 8px; 
+      margin-top: 4px; display: inline-block; 
+    }
+    .composicao-cargo.titular { background: #1976d2; }
+    .composicao-cargo.suplente { background: #f57c00; }
+    
+    .mensagem-vazio {
+      text-align: center; padding: 18px; 
+      color: #6c757d; font-style: italic; 
+      background: #f8f9fa; border-radius: 8px; 
+    }
+    
+    @media (max-width: 1200px) { 
+      .container { flex-direction: column; } 
+      .grupo { max-height: none; } 
+    }
+  </style>
+</head>
+<body>
+
+  <!-- MENU -->
+  <button class="menu-btn" onclick="toggleMenu()">☰ MENU</button>
+  <div class="menu-dropdown" id="menuDropdown">
+    <div class="menu-item" onclick="irParaTela('principal')"><span>🏠</span><span>Principal</span></div>
+    <div class="menu-item" onclick="solicitarSenha()"><span>🔒</span><span>Editar</span></div>
+    <div class="menu-item" id="menuCancelarEdicao" onclick="cancelarEdicao()"><span>❌</span><span>Salvar Html</span></div>
+    <div class="menu-item" onclick="abrirPaletaCores()"><span>🎨</span><span>Paleta de Cores</span></div>
+    <div class="menu-item" onclick="ativarModoReuniao()"><span>📋</span><span>Modo Reunião</span></div>
+    <div class="menu-item" onclick="irParaTela('analises')"><span>📊</span><span>Análises</span></div>
+    <div class="menu-item" onclick="salvarJSON()"><span>💾</span><span>Salvar JSON</span></div>
+    <div class="menu-item" onclick="document.getElementById('inputCarregarJSON').click()"><span>📂</span><span>Abrir JSON</span></div>
+    <div class="menu-item" onclick="carregarJSONExemplo()"><span>📥</span><span>Carregar Dados Exemplo</span></div>
+    <div class="menu-item" onclick="limparConselho()"><span>🧹</span><span>Limpar Conselho</span></div>
+  </div>
+  
+  <input type="file" id="inputCarregarJSON" accept=".json" style="display:none;" onchange="carregarJSON(this)">
+  
+  <!-- INDICADORES -->
+  <div class="edit-indicator" id="editIndicator">🔓 MODO EDIÇÃO ATIVO</div>
+  <button class="btn-cancelar-edicao" id="btnCancelarEdicao" onclick="cancelarEdicaoRapido()">❌ CANCELAR EDIÇÃO</button>
+  <div class="reuniao-indicator" id="reuniaoIndicator">📋 MODO REUNIÃO</div>
+  <button class="btn-concluir-reuniao" id="btnConcluirReuniao" onclick="concluirListaPresenca()">✅ Lista de Presença Concluída</button>
+  <button class="btn-abortar-reuniao" id="btnAbortarReuniao" onclick="abortarReuniao()">❌ Abortar Reunião</button>
+  <!-- MODAIS -->
+  
+  <!-- Modal Senha -->
+  <div class="modal" id="modalSenha">
+    <div class="modal-content">
+      <div class="modal-header">🔒 Autenticação Necessária</div>
+      <label class="modal-label">Digite a senha de administrador:</label>
+      <input type="password" class="modal-input" id="inputSenha">
+      <div>
+        <button class="modal-btn modal-btn-primary" onclick="verificarSenha()">Entrar</button>
+        <button class="modal-btn modal-btn-secondary" onclick="fecharModal('modalSenha')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal Concluir Edição -->
+  <div class="modal" id="modalConcluirEdicao">
+    <div class="modal-content">
+      <div class="modal-header">✅ Concluir Edição?</div>
+      <p style="margin-bottom:18px;">Baixar HTML atualizado com todas as alterações?</p>
+      <button class="modal-btn modal-btn-primary" onclick="baixarHTMLAtualizado()">✅ SIM</button>
+      <button class="modal-btn modal-btn-secondary" onclick="continuarEditando()">❌ NÃO</button>
+    </div>
+  </div>
+  
+  <!-- Modal Reunião -->
+  <div class="modal" id="modalReuniao">
+    <div class="modal-content">
+      <div class="modal-header">📋 Cadastrar Reunião</div>
+      <label class="modal-label">Data da Reunião (DD/MM/AAAA):</label>
+      <input type="text" class="modal-input" id="inputDataReuniao" placeholder="15/03/2024" maxlength="10">
+      <label class="modal-label">Local da Reunião:</label>
+      <input type="text" class="modal-input" id="inputLocalReuniao" placeholder="Parnaíba/PI">
+      <p style="margin-top:12px;color:#6c757d;font-size:0.85em;">
+        🟢 Verde = Presente | 🟡 Amarelo = Justificou | 🔴 Vermelho = Faltou
+      </p>
+      <button class="modal-btn modal-btn-primary" onclick="iniciarReuniao()">✅ Iniciar</button>
+      <button class="modal-btn modal-btn-secondary" onclick="fecharModal('modalReuniao')">❌ Cancelar</button>
+    </div>
+  </div>
+  
+  <!-- Modal Paleta de Cores -->
+  <div class="modal" id="modalPaletaCores">
+    <div class="modal-content">
+      <div class="modal-header">🎨 Escolha a Cor de Fundo</div>
+      <div class="color-picker-grid">
+        <div class="color-option" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" onclick="mudarCorFundo('linear-gradient(135deg, #667eea 0%, #764ba2 100%)')"></div>
+        <div class="color-option" style="background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%);" onclick="mudarCorFundo('linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%)')"></div>
+        <div class="color-option" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);" onclick="mudarCorFundo('linear-gradient(135deg, #f093fb 0%, #f5576c 100%)')"></div>
+        <div class="color-option" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);" onclick="mudarCorFundo('linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)')"></div>
+        <div class="color-option" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);" onclick="mudarCorFundo('linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)')"></div>
+        <div class="color-option" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);" onclick="mudarCorFundo('linear-gradient(135deg, #fa709a 0%, #fee140 100%)')"></div>
+        <div class="color-option" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);" onclick="mudarCorFundo('linear-gradient(135deg, #30cfd0 0%, #330867 100%)')"></div>
+        <div class="color-option" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);" onclick="mudarCorFundo('linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)')"></div>
+      </div>
+      <button class="modal-btn modal-btn-primary" onclick="fecharModal('modalPaletaCores')">✅ OK</button>
+    </div>
+  </div>
+  
+  <!-- Modal Escolher Emoji -->
+  <div class="modal" id="modalEscolherEmoji">
+    <div class="modal-content">
+      <div class="modal-header">🎭 Escolher <span id="tipoEmojiTitulo">Pessoa</span></div>
+      <div class="emoji-grid">
+        <div class="emoji-option" onclick="selecionarEmoji('👨🏻')">👨🏻</div>
+<div class="emoji-option" onclick="selecionarEmoji('👨🏼')">👨🏼</div>
+<div class="emoji-option" onclick="selecionarEmoji('👨🏽')">👨🏽</div>
+<div class="emoji-option" onclick="selecionarEmoji('👨🏾')">👨🏾</div>
+<div class="emoji-option" onclick="selecionarEmoji('👨🏿')">👨🏿</div>
+<div class="emoji-option" onclick="selecionarEmoji('👩')">👩</div>
+<div class="emoji-option" onclick="selecionarEmoji('👩🏻')">👩🏻</div>
+<div class="emoji-option" onclick="selecionarEmoji('👩🏽')">👩🏽</div>
+<div class="emoji-option" onclick="selecionarEmoji('👩🏾')">👩🏾</div>
+<div class="emoji-option" onclick="selecionarEmoji('👩🏿')">👩🏿</div>
+<div class="emoji-option" onclick="selecionarEmoji('👨‍🦰')">👨‍🦰</div>
+<div class="emoji-option" onclick="selecionarEmoji('👨🏻‍🦰')">👨🏻‍🦰</div>
+<div class="emoji-option" onclick="selecionarEmoji('👨🏽‍🦰')">👨🏽‍🦰</div>
+<div class="emoji-option" onclick="selecionarEmoji('👩‍🦰')">👩‍🦰</div>
+<div class="emoji-option" onclick="selecionarEmoji('👩🏻‍🦰')">👩🏻‍🦰</div>
+<div class="emoji-option" onclick="selecionarEmoji('👩🏾‍🦰')">👩🏾‍🦰</div>
+<div class="emoji-option" onclick="selecionarEmoji('👨‍🦱')">👨‍🦱</div>
+<div class="emoji-option" onclick="selecionarEmoji('👨🏼‍🦱')">👨🏼‍🦱</div>
+<div class="emoji-option" onclick="selecionarEmoji('👨🏿‍🦱')">👨🏿‍🦱</div>
+<div class="emoji-option" onclick="selecionarEmoji('👩‍🦱')">👩‍🦱</div>
+<div class="emoji-option" onclick="selecionarEmoji('👩🏼‍🦱')">👩🏼‍🦱</div>
+<div class="emoji-option" onclick="selecionarEmoji('👩🏽‍🦱')">👩🏽‍🦱</div>
+<div class="emoji-option" onclick="selecionarEmoji('👨‍🦳')">👨‍🦳</div>
+<div class="emoji-option" onclick="selecionarEmoji('👨🏼‍🦳')">👨🏼‍🦳</div>
+<div class="emoji-option" onclick="selecionarEmoji('👨🏾‍🦳')">👨🏾‍🦳</div>
+<div class="emoji-option" onclick="selecionarEmoji('👩‍🦳')">👩‍🦳</div>
+<div class="emoji-option" onclick="selecionarEmoji('👩🏻‍🦳')">👩🏻‍🦳</div>
+<div class="emoji-option" onclick="selecionarEmoji('👩🏿‍🦳')">👩🏿‍🦳</div>
+<div class="emoji-option" onclick="selecionarEmoji('👨‍🦲')">👨‍🦲</div>
+<div class="emoji-option" onclick="selecionarEmoji('👨🏽‍🦲')">👨🏽‍🦲</div>
+<div class="emoji-option" onclick="selecionarEmoji('👩‍🦲')">👩‍🦲</div>
+<div class="emoji-option" onclick="selecionarEmoji('👩🏾‍🦲')">👩🏾‍🦲</div>
+<div class="emoji-option" onclick="selecionarEmoji('🧑')">🧑</div>
+<div class="emoji-option" onclick="selecionarEmoji('🧑🏻')">🧑🏻</div>
+<div class="emoji-option" onclick="selecionarEmoji('🧑🏽')">🧑🏽</div>
+<div class="emoji-option" onclick="selecionarEmoji('🧑🏿')">🧑🏿</div>
+        <div class="emoji-option" onclick="selecionarEmoji('🏛️')">🏛️</div>
+        <div class="emoji-option" onclick="selecionarEmoji('🏢')">🏢</div>
+        <div class="emoji-option" onclick="selecionarEmoji('🏫')">🏫</div>
+        <div class="emoji-option" onclick="selecionarEmoji('🏭')">🏭</div>
+        <div class="emoji-option" onclick="selecionarEmoji('🌳')">🌳</div>
+        <div class="emoji-option" onclick="selecionarEmoji('🐟')">🐟</div>
+        <div class="emoji-option" onclick="selecionarEmoji('🌾')">🌾</div>
+        <div class="emoji-option" onclick="selecionarEmoji('❓')">❓</div>
+      </div>
+      <hr style="margin: 15px 0;">
+      <label class="modal-label">📷 Ou envie uma foto/logo:</label>
+      <input type="file" id="inputFotoEmoji" accept="image/*" style="margin-bottom: 12px;">
+      <button class="modal-btn modal-btn-primary" onclick="uploadFotoEmoji()">📷 Usar Foto</button>
+      <button class="modal-btn modal-btn-secondary" onclick="fecharModal('modalEscolherEmoji')">Cancelar</button>
+    </div>
+  </div>
+  
+  <!-- Modal Ver/Editar Currículo -->
+  <div class="modal" id="modalVerEditarCurriculo">
+    <div class="modal-content">
+      <div class="modal-header" id="tituloModalCurriculo">📄 Currículo</div>
+      <textarea class="modal-textarea" id="curriculoConteudo" style="min-height:130px;" readonly></textarea>
+      <button class="modal-btn modal-btn-primary" id="btnSalvarCurriculo" onclick="salvarCurriculo()" style="display: none;">💾 Salvar</button>
+      <button class="modal-btn modal-btn-secondary" onclick="fecharModal('modalVerEditarCurriculo')">Fechar</button>
+    </div>
+  </div>
+  
+  <!-- Modal Adicionar Membro -->
+  <div class="modal" id="modalAdicionarMembro">
+    <div class="modal-content">
+      <div class="modal-header">👤 Adicionar Membro</div>
+      <label class="modal-label">Nome Completo:</label>
+      <input type="text" class="modal-input" id="inputNomeMembro" placeholder="Ex: João da Silva">
+      <label class="modal-label">Entidade/Instituição:</label>
+      <input type="text" class="modal-input" id="inputEntidadeMembro" placeholder="Ex: Secretaria de Meio Ambiente">
+      <label class="modal-label">Município/UF:</label>
+      <input type="text" class="modal-input" id="inputMunicipioMembro" placeholder="Ex: Parnaíba/PI">
+      <label class="modal-label">Estado:</label>
+      <select class="modal-select" id="inputEstadoMembro">
+        <option value="">Selecione...</option>
+        <option value="MA">Maranhão (MA)</option>
+        <option value="PI">Piauí (PI)</option>
+        <option value="CE">Ceará (CE)</option>
+      </select>
+      <label class="modal-label">CPF:</label>
+      <input type="text" class="modal-input" id="inputCPFMembro" placeholder="000.000.000-00">
+      <label class="modal-label">E-mail:</label>
+      <input type="email" class="modal-input" id="inputEmailMembro" placeholder="exemplo@email.com">
+      <label class="modal-label">Mini Currículo:</label>
+      <textarea class="modal-textarea" id="inputCurriculoMembro" placeholder="Formação, experiências, atuação..."></textarea>
+      <label class="modal-label">Tipo:</label>
+      <select class="modal-select" id="inputTipoMembro">
+        <option value="titular">Titular</option>
+        <option value="suplente">Suplente</option>
+      </select>
+      <button class="modal-btn modal-btn-primary" onclick="confirmarAdicionarMembro()">✅ Adicionar</button>
+      <button class="modal-btn modal-btn-secondary" onclick="fecharModal('modalAdicionarMembro')">Cancelar</button>
+    </div>
+  </div>
+  
+  <!-- Modal Adicionar Atividade -->
+  <div class="modal" id="modalAdicionarAtividade">
+    <div class="modal-content">
+      <div class="modal-header" id="headerAtividade">✏️ Adicionar Atividade</div>
+      <label class="modal-label">Objetivo:</label>
+      <textarea class="modal-textarea" id="inputObjetivoAtiv"></textarea>
+      <label class="modal-label">Responsável:</label>
+      <input type="text" class="modal-input" id="inputResponsavelAtiv">
+      <label class="modal-label">Prazo:</label>
+      <input type="date" class="modal-input" id="inputPrazoAtiv">
+      <label class="modal-label">Resultado:</label>
+      <textarea class="modal-textarea" id="inputResultadoAtiv"></textarea>
+      <button class="modal-btn modal-btn-primary" onclick="confirmarAdicionarAtividade()">✅ Salvar</button>
+      <button class="modal-btn modal-btn-secondary" onclick="fecharModal('modalAdicionarAtividade')">Cancelar</button>
+    </div>
+  </div>
+  
+  <!-- Modal Status Atividade -->
+  <div class="modal" id="modalStatusAtividade">
+    <div class="modal-content">
+      <div class="modal-header">📋 Status da Atividade</div>
+      <p style="margin-bottom:18px;font-size:1em;">Você preencheu o campo "Resultado". Qual o status desta atividade?</p>
+      <button class="modal-btn modal-btn-primary" onclick="marcarStatusAtividade(true)" style="background:#2ecc71;">✅ Tarefa Concluída</button>
+      <button class="modal-btn modal-btn-secondary" onclick="marcarStatusAtividade(false)" style="background:#ffd43b;color:#333;">❌ Tarefa Não Concluída</button>
+    </div>
+  </div>
+  
+  <!-- Modal Criar GT -->
+  <div class="modal" id="modalCriarGT">
+    <div class="modal-content">
+      <div class="modal-header">📋 Criar/Editar Grupo de Trabalho</div>
+      <label class="modal-label">Título:</label>
+      <input type="text" class="modal-input" id="inputTituloGT">
+      <label class="modal-label">Objetivo:</label>
+      <textarea class="modal-textarea" id="inputObjetivoGT"></textarea>
+      <label class="modal-label">Responsável:</label>
+      <input type="text" class="modal-input" id="inputResponsavelGT">
+      <label class="modal-label">Componentes:</label>
+      <textarea class="modal-textarea" id="inputComponentesGT"></textarea>
+      <label class="modal-label">Resultado:</label>
+      <textarea class="modal-textarea" id="inputResultadoGT"></textarea>
+      <button class="modal-btn modal-btn-primary" onclick="confirmarCriarGT()">✅ Salvar GT</button>
+      <button class="modal-btn modal-btn-secondary" onclick="fecharModal('modalCriarGT')">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Modal Criar Câmara Temática -->
+  <div class="modal" id="modalCriarCamara">
+    <div class="modal-content">
+      <div class="modal-header">🏛️ Criar Câmara Temática</div>
+      <label class="modal-label">Nome da Câmara:</label>
+      <input type="text" class="modal-input" id="inputNomeCamara" placeholder="Ex: Educação Ambiental">
+      <label class="modal-label">Emoji/Ícone:</label>
+      <input type="text" class="modal-input" id="inputEmojiCamara" placeholder="Ex: 📚" maxlength="3">
+      <label class="modal-label">Identificador (slug):</label>
+      <input type="text" class="modal-input" id="inputSlugCamara" placeholder="Ex: educacao-ambiental">
+      <p style="margin-top:8px;color:#6c757d;font-size:0.8em;">💡 O slug será usado internamente (sem espaços, minúsculas)</p>
+      <button class="modal-btn modal-btn-primary" onclick="confirmarCriarCamara()">✅ Criar</button>
+      <button class="modal-btn modal-btn-secondary" onclick="fecharModal('modalCriarCamara')">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Modal Editar Nome Câmara -->
+  <div class="modal" id="modalEditarNomeCamara">
+    <div class="modal-content">
+      <div class="modal-header">✏️ Editar Nome da Câmara</div>
+      <label class="modal-label">Novo Nome:</label>
+      <input type="text" class="modal-input" id="inputNovoNomeCamara" placeholder="Ex: 🔬 Pesquisa e Monitoramento">
+      <p style="margin-top:8px;color:#6c757d;font-size:0.8em;">💡 Você pode incluir emoji no nome</p>
+      <button class="modal-btn modal-btn-primary" onclick="confirmarEditarNomeCamara()">✅ Salvar</button>
+      <button class="modal-btn modal-btn-secondary" onclick="fecharModal('modalEditarNomeCamara')">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- TELA PRINCIPAL -->
+  <div class="tela active" id="telaPrincipal"> 
+    <div class="main-content">
+      <div class="header">
+        <h1 class="editable" contenteditable="false">Sistema de Gestão de Conselho Consultivo</h1>
+        <p>Gestão Completa de Membros e Atividades</p>
+        <div class="reuniao-info">
+          <span>Próxima Reunião:</span> 
+          <span class="editable-inline" id="dataProximaReuniao" contenteditable="false">--/--/----</span> | 
+          <span>Local:</span> 
+          <span class="editable-inline" id="localProximaReuniao" contenteditable="false">---</span>
+        </div>
+      </div>
+      
+      <!-- PRESIDÊNCIA -->
+      <div class="presidencia-container">
+        <div class="presidencia-header" onclick="togglePresidencia()">
+          <div class="presidencia-titulo">
+            <span>🏛️</span>
+            <span>PRESIDÊNCIA DO CONSELHO</span>
+          </div>
+          <div class="presidencia-seta">▼</div>
+        </div>
+        
+        <div class="presidencia-conteudo">
+          <div class="cadeira presidencia" style="background: white; border-radius: 8px;">
+            <div class="cadeira-header">
+              <span class="icone-cadeira">🪑</span>
+              <span class="numero-cadeira">Presidente</span>
+            </div>
+            <div class="cadeira-membros-container" id="presidenciaContainer">
+              <!-- Presidente será adicionado via JSON -->
+            </div>
+            <button class="btn-add-membro" onclick="abrirModalAdicionarMembroPresidencia()">➕ Adicionar Presidente</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="container">
+        
+        <!-- PODER PÚBLICO -->
+        <div class="grupo" id="poder-publico">
+          <div class="grupo-header" onclick="toggleGrupo(this)">
+            <div class="titulo-grupo">⚖️ PODER PÚBLICO</div>
+            <div class="grupo-seta">▼</div>
+          </div>
+          
+          <div class="grupo-conteudo">
+            <div class="grupo-contador">
+              <span>📂 Setores: <strong class="contador-setores">0</strong></span>
+              <span>🪑 Cadeiras: <strong class="contador-cadeiras-total">0</strong></span>
+            </div>
+            <button class="btn-add-setor" onclick="adicionarSetor('poder-publico')">➕ Setor</button>
+          </div>
+        </div>
+
+        <!-- SOCIEDADE CIVIL -->
+        <div class="grupo" id="sociedade-civil">
+          <div class="grupo-header" onclick="toggleGrupo(this)">
+            <div class="titulo-grupo">🤝 SOCIEDADE CIVIL</div>
+            <div class="grupo-seta">▼</div>
+          </div>
+          
+          <div class="grupo-conteudo">
+            <div class="grupo-contador">
+              <span>📂 Setores: <strong class="contador-setores">0</strong></span>
+              <span>🪑 Cadeiras: <strong class="contador-cadeiras-total">0</strong></span>
+            </div>
+            <button class="btn-add-setor" onclick="adicionarSetor('sociedade-civil')">➕ Setor</button>
+          </div>
+        </div>
+        
+      </div>
+      
+      <!-- CÂMARAS TEMÁTICAS -->
+      <div class="camaras-container">
+        <div class="camaras-titulo">🏛️ CÂMARAS TEMÁTICAS</div>
+        <button class="btn-criar-camara" onclick="abrirModalCriarCamara()">➕ Criar Nova Câmara Temática</button>
+        <div class="camaras-grid" id="camarasGrid">
+          <!-- Câmaras serão adicionadas via JSON ou manualmente -->
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- TELA ANÁLISES -->
+  <div class="tela" id="telaAnalises">
+    <div class="analises-container">
+      <h1 style="text-align:center;color:#2c3e50;margin-bottom:25px;font-size:1.8em;">📊 Análises do Conselho</h1>
+      <div class="analises-menu">
+        <button class="analise-btn" onclick="mostrarAnalise('presenca')">📈 Presença</button>
+        <button class="analise-btn active" onclick="mostrarAnalise('composicao')">👥 Composição</button>
+        <button class="analise-btn" onclick="mostrarAnalise('estados')">🗺️ Estados</button>
+        <button class="analise-btn" onclick="mostrarAnalise('atividades')">✅ Atividades</button>
+      </div>
+      
+      <div class="analise-content" id="analisePresenca">
+        <h2 style="margin-bottom:18px;font-size:1.4em;">Ranking de Assiduidade</h2>
+        <div id="rankingContainer">
+          <p class="mensagem-vazio">Nenhum registro de presença encontrado</p>
+        </div>
+      </div>
+      
+      <div class="analise-content active" id="analiseComposicao">
+        <div id="composicaoContainer">
+          <p class="mensagem-vazio">Nenhum conselheiro cadastrado</p>
+        </div>
+      </div>
+      
+      <div class="analise-content" id="analiseEstados">
+        <div id="estadosContainer">
+          <p class="mensagem-vazio">Nenhum conselheiro cadastrado</p>
+        </div>
+      </div>
+      
+      <div class="analise-content" id="analiseAtividades">
+        <div id="atividadesContainer">
+          <p class="mensagem-vazio">Nenhuma atividade cadastrada</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT -->
+  <script>
+    // ============================================
+    // VARIÁVEIS GLOBAIS
+    // ============================================
+    let modoEdicao = false;
+    let modoReuniao = false;
+    let elementoEmojiAtual = null;
+    let tipoEmojiAtual = '';
+    let elementoAtividadeAtual = null;
+    let isAtividadeGT = false;
+    let elementoGTAtual = null;
+    let atividadeEmEdicao = null;
+    let camaraEdicaoNomeAtual = null;
+    let cadeiraAtualAdicionarMembro = null;
+    let membroAtualEditando = null;
+
+    // ============================================
+    // SISTEMA DE COLLAPSE/ACORDEÃO
+    // ============================================
+    
+    function togglePresidencia() {
+      const header = document.querySelector('.presidencia-header');
+      const conteudo = document.querySelector('.presidencia-conteudo');
+      
+      header.classList.toggle('active');
+      conteudo.classList.toggle('active');
+    }
+    
+    function toggleGrupo(elemento) {
+      const header = elemento;
+      const grupo = header.closest('.grupo');
+      const conteudo = grupo.querySelector('.grupo-conteudo');
+      
+      header.classList.toggle('active');
+      conteudo.classList.toggle('active');
+    }
+    
+    function toggleSetor(elemento) {
+      const wrapper = elemento.closest('.setor-header-wrapper');
+      const setor = wrapper.closest('.setor');
+      const conteudo = setor.querySelector('.setor-conteudo');
+      
+      wrapper.classList.toggle('active');
+      conteudo.classList.toggle('active');
+    }
+    
+    function expandirTudo() {
+      document.querySelectorAll('.presidencia-header, .grupo-header, .setor-header-wrapper').forEach(el => {
+        el.classList.add('active');
+      });
+      document.querySelectorAll('.presidencia-conteudo, .grupo-conteudo, .setor-conteudo').forEach(el => {
+        el.classList.add('active');
+      });
+    }
+    
+    function colapsarTudo() {
+      document.querySelectorAll('.presidencia-header, .grupo-header, .setor-header-wrapper').forEach(el => {
+        el.classList.remove('active');
+      });
+      document.querySelectorAll('.presidencia-conteudo, .grupo-conteudo, .setor-conteudo').forEach(el => {
+        el.classList.remove('active');
+      });
+    }
+
+    // ============================================
+    // ATUALIZAR CONTADORES
+    // ============================================
+    function atualizarContadoresGrupo(grupoId) {
+      const grupo = document.getElementById(grupoId);
+      if(!grupo) return;
+      
+      const numSetores = grupo.querySelectorAll('.setor').length;
+      const numCadeiras = grupo.querySelectorAll('.cadeira').length;
+      
+      const contadorSetores = grupo.querySelector('.contador-setores');
+      const contadorCadeiras = grupo.querySelector('.contador-cadeiras-total');
+      
+      if(contadorSetores) contadorSetores.textContent = numSetores;
+      if(contadorCadeiras) contadorCadeiras.textContent = numCadeiras;
+    }
+
+    function atualizarContadorCadeiras(setor) {
+      const numCadeiras = setor.querySelectorAll('.cadeira').length;
+      const contador = setor.querySelector('.contador-cadeiras');
+      if(contador) {
+        contador.textContent = `${numCadeiras} cadeira${numCadeiras !== 1 ? 's' : ''}`;
+      }
+      
+      const grupoId = setor.closest('.grupo')?.id;
+      if(grupoId) {
+        atualizarContadoresGrupo(grupoId);
+      }
+    }
+
+    function atualizarContadorCamara(camara) {
+      const numMembros = camara.querySelectorAll('.camara-membro').length;
+      const contador = camara.querySelector('.camara-contador');
+      if(contador) {
+        contador.textContent = `${numMembros} membro${numMembros !== 1 ? 's' : ''}`;
+      }
+    }
+
+    // ============================================
+    // MENU
+    // ============================================
+    function toggleMenu() {
+      document.getElementById('menuDropdown').classList.toggle('active');
+    }
+
+    function irParaTela(tela) {
+      document.querySelectorAll('.tela').forEach(t => t.classList.remove('active'));
+      if(tela === 'principal') {
+        document.getElementById('telaPrincipal').classList.add('active');
+      } else if(tela === 'analises') {
+        document.getElementById('telaAnalises').classList.add('active');
+        gerarAnalises();
+      }
+      toggleMenu();
+    }
+
+    // ============================================
+    // MODO EDIÇÃO
+    // ============================================
+    function solicitarSenha() {
+      toggleMenu();
+      document.getElementById('modalSenha').classList.add('active');
+      document.getElementById('inputSenha').value = '';
+      document.getElementById('inputSenha').focus();
+    }
+
+    function verificarSenha() {
+      const senha = document.getElementById('inputSenha').value;
+      if(senha === '123') {
+        fecharModal('modalSenha');
+        ativarModoEdicao();
+      } else {
+        alert('❌ Senha incorreta!');
+      }
+    }
+
+    function ativarModoEdicao() {
+      modoEdicao = true;
+      document.body.classList.add('edit-mode');
+      document.getElementById('editIndicator').classList.add('active');
+      document.getElementById('btnCancelarEdicao').classList.add('active');
+      document.getElementById('menuCancelarEdicao').style.display = 'block';
+      
+      document.querySelectorAll('.editable').forEach(el => {
+        el.contentEditable = 'true';
+      });
+      document.querySelectorAll('.editable-inline').forEach(el => {
+        el.contentEditable = 'true';
+      });
+
+      colapsarTudo();
+
+      alert('🔓 Modo de edição ativado!\n\nAgora você pode:\n• Editar textos\n• Adicionar/remover setores e cadeiras\n• Criar câmaras temáticas\n• Arrastar membros\n• Editar currículos');
+    }
+
+    function cancelarEdicao() {
+      if(confirm('❓ Concluir modo de edição?\n\nDeseja baixar o HTML atualizado?')) {
+        document.getElementById('modalConcluirEdicao').classList.add('active');
+      }
+      toggleMenu();
+    }
+
+    function cancelarEdicaoRapido() {
+      if(confirm('❓ Cancelar edição?\n\nTodas as alterações serão perdidas!')) {
+        location.reload();
+      }
+    }
+
+    function continuarEditando() {
+      fecharModal('modalConcluirEdicao');
+      alert('✅ Continue editando!');
+    }
+
+    function baixarHTMLAtualizado() {
+      modoEdicao = false;
+      document.body.classList.remove('edit-mode');
+      document.getElementById('editIndicator').classList.remove('active');
+      document.getElementById('btnCancelarEdicao').classList.remove('active');
+      
+      document.querySelectorAll('.editable').forEach(el => {
+        el.contentEditable = 'false';
+      });
+      document.querySelectorAll('.editable-inline').forEach(el => {
+        el.contentEditable = 'false';
+      });
+
+      document.querySelectorAll('.modal').forEach(modal => {
+        modal.classList.remove('active');
+      });
+
+      document.getElementById('menuDropdown').classList.remove('active');
+      colapsarTudo();
+
+      const htmlCompleto = document.documentElement.outerHTML;
+      const blob = new Blob([htmlCompleto], { type: 'text/html' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `conselho_${new Date().toISOString().slice(0,10)}.html`;
+      link.click();
+
+      fecharModal('modalConcluirEdicao');
+      alert('✅ HTML atualizado baixado!');
+      
+      setTimeout(() => location.reload(), 1000);
+    }
+
+    // ============================================
+    // PALETA DE CORES
+    // ============================================
+    function abrirPaletaCores() {
+      toggleMenu();
+      document.getElementById('modalPaletaCores').classList.add('active');
+    }
+
+    function mudarCorFundo(gradiente) {
+      document.body.style.background = gradiente;
+      fecharModal('modalPaletaCores');
+    }
+
+    // ============================================
+    // MODAL
+    // ============================================
+    function fecharModal(idModal) {
+      document.getElementById(idModal).classList.remove('active');
+    }
+
+    document.addEventListener('click', (e) => {
+      if(e.target.classList.contains('modal')) {
+        e.target.classList.remove('active');
+      }
+    });
+
+    // ============================================
+    // SETORES E CADEIRAS
+    // ============================================
+    function adicionarSetor(grupoId) {
+      if(!modoEdicao) {
+        alert('⚠️ Ative o modo de edição primeiro!');
+        return;
+      }
+
+      const nomeSetor = prompt('📝 Digite o nome do novo setor:');
+      if(!nomeSetor) return;
+
+      const grupo = document.getElementById(grupoId);
+      const setor = document.createElement('div');
+      setor.className = 'setor';
+      setor.innerHTML = `
+        <div class="setor-header-wrapper" onclick="toggleSetor(this)">
+          <div class="setor-seta">▼</div>
+          <div class="titulo-setor">
+            <span class="editable" contenteditable="true">${nomeSetor}</span>
+            <span class="contador-cadeiras">0 cadeiras</span>
+            <button class="btn-remove" onclick="event.stopPropagation(); removerSetor(this)">🗑️</button>
+          </div>
+        </div>
+        <div class="setor-conteudo active">
+          <button class="btn-add-cadeira" onclick="adicionarCadeira(this)">➕ Cadeira</button>
+        </div>
+      `;
+      
+      const btnAddSetor = grupo.querySelector('.btn-add-setor');
+      const conteudoGrupo = grupo.querySelector('.grupo-conteudo');
+      conteudoGrupo.insertBefore(setor, btnAddSetor);
+      
+      alert(`✅ Setor "${nomeSetor}" criado!`);
+      atualizarContadoresGrupo(grupoId);
+    }
+
+    function removerSetor(btn) {
+      if(!modoEdicao) return;
+      
+      if(confirm('❓ Remover este setor e todas as suas cadeiras?')) {
+        const setor = btn.closest('.setor');
+        const grupoId = setor.closest('.grupo').id;
+        setor.remove();
+        alert('✅ Setor removido!');
+        atualizarContadoresGrupo(grupoId);
+      }
+    }
+
+    function adicionarCadeira(btn) {
+      if(!modoEdicao) {
+        alert('⚠️ Ative o modo de edição primeiro!');
+        return;
+      }
+      
+      const setor = btn.closest('.setor');
+      if(!setor) {
+        alert('❌ Erro: setor não encontrado!');
+        return;
+      }
+      
+      const cadeiraExistentes = setor.querySelectorAll('.cadeira');
+      const numCadeiraAtual = cadeiraExistentes.length + 1;
+      
+      const numeroCadeira = prompt(
+        `📝 Digite o número/nome da nova cadeira:\n\n` +
+        `Cadeiras existentes: ${cadeiraExistentes.length}`,
+        `Cadeira ${numCadeiraAtual}`
+      );
+      
+      if(!numeroCadeira) return;
+      
+      const cadeira = document.createElement('div');
+      cadeira.className = 'cadeira';
+      cadeira.innerHTML = `
+        <div class="cadeira-header">
+          <span class="icone-cadeira">🪑</span>
+          <span class="numero-cadeira">${numeroCadeira}</span>
+          <button class="btn-remove" onclick="removerCadeira(this)">🗑️</button>
+        </div>
+        <div class="cadeira-membros-container"></div>
+        <button class="btn-add-membro" onclick="abrirModalAdicionarMembro(this)">➕ Adicionar Membro</button>
+      `;
+      
+      const btnAddCadeiraSetor = setor.querySelector('.btn-add-cadeira');
+      const setorConteudo = setor.querySelector('.setor-conteudo');
+      setorConteudo.insertBefore(cadeira, btnAddCadeiraSetor);
+      
+      atualizarContadorCadeiras(setor);
+      
+      alert(`✅ "${numeroCadeira}" criada!\n\n👥 Agora adicione membros.`);
+    }
+
+    function removerCadeira(btn) {
+      if(!modoEdicao) return;
+      
+      if(confirm('❓ Remover esta cadeira?')) {
+        const setor = btn.closest('.setor');
+        btn.closest('.cadeira').remove();
+        atualizarContadorCadeiras(setor);
+        alert('✅ Cadeira removida!');
+      }
+    }
+    // ============================================
+    // ADICIONAR MEMBRO
+    // ============================================
+    function abrirModalAdicionarMembroPresidencia() {
+      if(!modoEdicao) {
+        alert('⚠️ Ative o modo de edição primeiro!');
+        return;
+      }
+      cadeiraAtualAdicionarMembro = document.getElementById('presidenciaContainer');
+      membroAtualEditando = null;
+      limparCamposModalMembro();
+      document.getElementById('modalAdicionarMembro').classList.add('active');
+    }
+
+    function abrirModalAdicionarMembro(btn) {
+      if(!modoEdicao) {
+        alert('⚠️ Ative o modo de edição primeiro!');
+        return;
+      }
+      
+      const cadeira = btn.closest('.cadeira');
+      cadeiraAtualAdicionarMembro = cadeira.querySelector('.cadeira-membros-container');
+      membroAtualEditando = null;
+      limparCamposModalMembro();
+      document.getElementById('modalAdicionarMembro').classList.add('active');
+    }
+
+    function limparCamposModalMembro() {
+      document.getElementById('inputNomeMembro').value = '';
+      document.getElementById('inputEntidadeMembro').value = '';
+      document.getElementById('inputMunicipioMembro').value = '';
+      document.getElementById('inputEstadoMembro').value = '';
+      document.getElementById('inputCPFMembro').value = '';
+      document.getElementById('inputEmailMembro').value = '';
+      document.getElementById('inputCurriculoMembro').value = '';
+      document.getElementById('inputTipoMembro').value = 'titular';
+    }
+
+    function confirmarAdicionarMembro() {
+  const nome = document.getElementById('inputNomeMembro').value;
+  const entidade = document.getElementById('inputEntidadeMembro').value;
+  const municipio = document.getElementById('inputMunicipioMembro').value;
+  const estado = document.getElementById('inputEstadoMembro').value;
+  const cpf = document.getElementById('inputCPFMembro').value;
+  const email = document.getElementById('inputEmailMembro').value;
+  const curriculo = document.getElementById('inputCurriculoMembro').value;
+  const tipo = document.getElementById('inputTipoMembro').value;
+
+  if(!nome || !estado) {
+    alert('⚠️ Preencha pelo menos o nome e o estado!');
+    return;
+  }
+
+  // SE ESTIVER EDITANDO
+  if(membroAtualEditando) {
+    membroAtualEditando.querySelector('.nome-membro').textContent = nome;
+    membroAtualEditando.querySelector('.entidade-membro').textContent = entidade || '-';
+    membroAtualEditando.querySelector('.municipio-membro').textContent = `📍 ${municipio || '-'}`;
+    membroAtualEditando.dataset.estado = estado;
+    membroAtualEditando.dataset.cpf = cpf;
+    membroAtualEditando.dataset.email = email;
+    membroAtualEditando.dataset.curriculo = curriculo;
+    
+    // Atualizar tipo
+    membroAtualEditando.className = `membro-linha ${tipo}`;
+    membroAtualEditando.querySelector('.etiqueta-cargo').className = `etiqueta-cargo ${tipo}`;
+    membroAtualEditando.querySelector('.etiqueta-cargo').textContent = tipo === 'titular' ? 'Titular' : 'Suplente';
+    
+    // Atualizar cor de fundo conforme estado
+    if(estado === 'MA') membroAtualEditando.style.background = 'linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%)';
+    if(estado === 'PI') membroAtualEditando.style.background = 'linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%)';
+    if(estado === 'CE') membroAtualEditando.style.background = 'linear-gradient(135deg, #FFE0E0 0%, #FFCDD2 100%)';
+    
+    fecharModal('modalAdicionarMembro');
+    membroAtualEditando = null;
+    alert(`✅ Membro "${nome}" atualizado com sucesso!`);
+    return;
+  }
+
+  // SE ESTIVER ADICIONANDO NOVO
+  const membro = document.createElement('div');
+  membro.className = `membro-linha ${tipo}`;
+  membro.draggable = true;
+  membro.dataset.id = `membro-${Date.now()}`;
+  membro.dataset.estado = estado;
+  membro.dataset.curriculo = curriculo;
+  membro.dataset.cpf = cpf;
+  membro.dataset.email = email;
+
+  membro.innerHTML = `
+    <div class="membro-linha-top" onclick="editarMembroCompleto(this)">
+      <div class="avatar-container">
+        <span class="bonequinho" onclick="event.stopPropagation(); abrirEscolherEmoji(this, 'pessoa')">👤</span>
+        <span class="logo-instituicao" onclick="event.stopPropagation(); abrirEscolherEmoji(this, 'logo')">🏛️</span>
+      </div>
+      <span class="etiqueta-cargo ${tipo}">${tipo === 'titular' ? 'Titular' : 'Suplente'}</span>
+      <div class="info-membro">
+        <div class="nome-membro">${nome}</div>
+        <div class="entidade-membro">${entidade || '-'}</div>
+        <div class="municipio-membro">📍 ${municipio || '-'}</div>
+        <button class="btn-ver-curriculo" onclick="event.stopPropagation(); verEditarCurriculo(this)"></button>
+      </div>
+    </div>
+    <div class="presenca-container">
+      <span class="presenca-label">Presenças:</span>
+    </div>
+    <button class="btn-remove" onclick="removerMembro(this)" style="margin-top:5px;">🗑️ Remover</button>
+  `;
+
+  if(cadeiraAtualAdicionarMembro) {
+    cadeiraAtualAdicionarMembro.appendChild(membro);
+  }
+
+  configurarDragAndDrop();
+  fecharModal('modalAdicionarMembro');
+  alert(`✅ ${tipo} "${nome}" adicionado com sucesso!`);
+}
+    function removerMembro(btn) {
+      if(!modoEdicao) return;
+      
+      if(confirm('❓ Remover este membro?')) {
+        btn.closest('.membro-linha').remove();
+        alert('✅ Membro removido!');
+      }
+    }
+
+    // ============================================
+    // EMOJI E FOTO
+    // ============================================
+    function abrirEscolherEmoji(elemento, tipo) {
+      if(!modoEdicao) {
+        alert('⚠️ Ative o modo de edição primeiro!');
+        return;
+      }
+      
+      elementoEmojiAtual = elemento;
+      tipoEmojiAtual = tipo;
+      
+      document.getElementById('tipoEmojiTitulo').textContent = tipo === 'pessoa' ? 'Pessoa' : 'Logo/Instituição';
+      document.getElementById('modalEscolherEmoji').classList.add('active');
+    }
+
+    function selecionarEmoji(emoji) {
+      if(elementoEmojiAtual) {
+        elementoEmojiAtual.textContent = emoji;
+        fecharModal('modalEscolherEmoji');
+      }
+    }
+
+    function uploadFotoEmoji() {
+      const input = document.getElementById('inputFotoEmoji');
+      const file = input.files[0];
+      
+      if(!file) {
+        alert('⚠️ Selecione uma imagem primeiro!');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        if(elementoEmojiAtual) {
+          elementoEmojiAtual.innerHTML = `<img src="${e.target.result}" alt="foto">`;
+          fecharModal('modalEscolherEmoji');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // ============================================
+    // CURRÍCULO
+    // ============================================
+    function verEditarCurriculo(btn) {
+      const membroLinha = btn.closest('.membro-linha');
+      const curriculo = membroLinha.dataset.curriculo || '';
+      const nome = membroLinha.querySelector('.nome-membro')?.textContent || 'Membro';
+      
+      document.getElementById('tituloModalCurriculo').textContent = `📄 Currículo - ${nome}`;
+      document.getElementById('curriculoConteudo').value = curriculo;
+      
+      if(modoEdicao) {
+        document.getElementById('curriculoConteudo').readOnly = false;
+        document.getElementById('btnSalvarCurriculo').style.display = 'inline-block';
+        document.getElementById('btnSalvarCurriculo').onclick = function() {
+          salvarCurriculo(membroLinha);
+        };
+      } else {
+        document.getElementById('curriculoConteudo').readOnly = true;
+        document.getElementById('btnSalvarCurriculo').style.display = 'none';
+      }
+      
+      document.getElementById('modalVerEditarCurriculo').classList.add('active');
+    }
+
+    function salvarCurriculo(membroLinha) {
+      const novoConteudo = document.getElementById('curriculoConteudo').value;
+      membroLinha.dataset.curriculo = novoConteudo;
+      fecharModal('modalVerEditarCurriculo');
+      alert('✅ Currículo salvo com sucesso!');
+    }
+
+    // ============================================
+    // MODO REUNIÃO - LISTA DE PRESENÇA
+    // ============================================
+    function ativarModoReuniao() {
+      toggleMenu();
+      document.getElementById('modalReuniao').classList.add('active');
+    }
+
+    function iniciarReuniao() {
+      const data = document.getElementById('inputDataReuniao').value;
+      const local = document.getElementById('inputLocalReuniao').value;
+      
+      if(!data || !local) {
+        alert('⚠️ Preencha data e local da reunião!');
+        return;
+      }
+      
+      modoReuniao = true;
+      document.getElementById('reuniaoIndicator').classList.add('active');
+      document.getElementById('btnConcluirReuniao').classList.add('active');
+      document.getElementById('btnAbortarReuniao').classList.add('active');
+      
+      document.querySelectorAll('.membro-linha:not(.vazio)').forEach(membro => {
+        const presencaContainer = membro.querySelector('.presenca-container');
+        const bolinha = document.createElement('div');
+        bolinha.className = 'bolinha-presenca';
+        bolinha.dataset.reuniao = data;
+        bolinha.dataset.local = local;
+        bolinha.title = `${data} - ${local}`;
+        bolinha.onclick = function() { togglePresenca(this); };
+        presencaContainer.appendChild(bolinha);
+      });
+      
+      fecharModal('modalReuniao');
+      alert(`✅ Modo Reunião Ativado!\n\n📅 ${data}\n📍 ${local}\n\n🟢 Clique nas bolinhas para marcar presença.`);
+    }
+
+    function togglePresenca(bolinha) {
+      if(!modoReuniao) return;
+      
+      if(!bolinha.classList.contains('verde') && !bolinha.classList.contains('amarelo') && !bolinha.classList.contains('vermelho')) {
+        bolinha.classList.add('verde');
+      } else if(bolinha.classList.contains('verde')) {
+        bolinha.classList.remove('verde');
+        bolinha.classList.add('amarelo');
+      } else if(bolinha.classList.contains('amarelo')) {
+        bolinha.classList.remove('amarelo');
+        bolinha.classList.add('vermelho');
+      } else {
+        bolinha.classList.remove('vermelho');
+      }
+    }
+
+    function concluirListaPresenca() {
+      if(confirm('✅ Concluir lista de presença desta reunião?\n\nAs presenças serão salvas permanentemente.')) {
+        modoReuniao = false;
+        document.getElementById('reuniaoIndicator').classList.remove('active');
+        document.getElementById('btnConcluirReuniao').classList.remove('active');
+        document.getElementById('btnAbortarReuniao').classList.remove('active');
+        
+        alert('✅ Lista de presença concluída!\n\n💾 Salve o arquivo HTML para preservar os dados.');
+      }
+    }
+
+    function abortarReuniao() {
+      if(confirm('❌ Abortar esta reunião?\n\nTodos os registros de presença serão apagados!')) {
+        document.querySelectorAll('.presenca-container').forEach(container => {
+          const bolinhas = container.querySelectorAll('.bolinha-presenca');
+          if(bolinhas.length > 0) {
+            const ultimaBolinha = bolinhas[bolinhas.length - 1];
+            if(!ultimaBolinha.classList.contains('verde') && !ultimaBolinha.classList.contains('amarelo') && !ultimaBolinha.classList.contains('vermelho')) {
+              ultimaBolinha.remove();
+            } else {
+              if(confirm('⚠️ Algumas presenças já foram marcadas. Deseja realmente apagar?')) {
+                ultimaBolinha.remove();
+              }
+            }
+          }
+        });
+        
+        modoReuniao = false;
+        document.getElementById('reuniaoIndicator').classList.remove('active');
+        document.getElementById('btnConcluirReuniao').classList.remove('active');
+        document.getElementById('btnAbortarReuniao').classList.remove('active');
+        
+        alert('✅ Reunião abortada!');
+      }
+    }
+
+    function editarReuniaoPresidente(bolinha) {
+      if(!modoEdicao) return;
+      
+      const dataAtual = bolinha.dataset.reuniao || '';
+      const localAtual = bolinha.dataset.local || '';
+      
+      const novaData = prompt('📅 Digite a nova data (DD/MM/AAAA):', dataAtual);
+      if(!novaData) return;
+      
+      const novoLocal = prompt('📍 Digite o novo local:', localAtual);
+      if(!novoLocal) return;
+      
+      bolinha.dataset.reuniao = novaData;
+      bolinha.dataset.local = novoLocal;
+      bolinha.title = `${novaData} - ${novoLocal}`;
+      
+      alert('✅ Reunião atualizada!');
+    }
+
+    // ============================================
+    // DRAG AND DROP
+    // ============================================
+    function configurarDragAndDrop() {
+      const membros = document.querySelectorAll('.membro-linha[draggable="true"]');
+      const camaras = document.querySelectorAll('.camara');
+      
+      membros.forEach(membro => {
+        membro.addEventListener('dragstart', handleDragStart);
+        membro.addEventListener('dragend', handleDragEnd);
+      });
+      
+      camaras.forEach(camara => {
+        camara.addEventListener('dragover', handleDragOver);
+        camara.addEventListener('drop', handleDrop);
+        camara.addEventListener('dragleave', handleDragLeave);
+      });
+    }
+
+    let membroArrastado = null;
+
+    function handleDragStart(e) {
+      if(!modoEdicao) {
+        e.preventDefault();
+        return;
+      }
+      membroArrastado = this;
+      this.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function handleDragEnd(e) {
+      this.classList.remove('dragging');
+    }
+
+    function handleDragOver(e) {
+      if(!modoEdicao) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      this.classList.add('drag-over');
+    }
+
+    function handleDragLeave(e) {
+      this.classList.remove('drag-over');
+    }
+
+    function handleDrop(e) {
+      if(!modoEdicao) return;
+      e.preventDefault();
+      this.classList.remove('drag-over');
+      
+      if(!membroArrastado) return;
+      
+      const nomeMembro = membroArrastado.querySelector('.nome-membro')?.textContent || 'Membro';
+      const boneco = membroArrastado.querySelector('.bonequinho')?.textContent || '👤';
+      const nomeCamara = this.querySelector('.camara-nome')?.textContent || 'Câmara';
+      
+      if(confirm(`➕ Adicionar "${nomeMembro}" à câmara "${nomeCamara}"?`)) {
+        const camaraMembros = this.querySelector('.camara-membros');
+        
+        const jaExiste = Array.from(camaraMembros.querySelectorAll('.camara-membro')).some(m => 
+          m.querySelector('.nome-membro')?.textContent === nomeMembro
+        );
+        
+        if(jaExiste) {
+          alert('⚠️ Este membro já está nesta câmara!');
+          return;
+        }
+        
+        const membroCamara = document.createElement('div');
+        membroCamara.className = 'camara-membro';
+        membroCamara.innerHTML = `
+          <span class="bonequinho">${boneco}</span>
+          <div class="nome-membro">${nomeMembro}</div>
+          <button class="btn-remove" onclick="removerMembroCamara(this)">🗑️</button>
+        `;
+        
+        camaraMembros.appendChild(membroCamara);
+        atualizarContadorCamara(this);
+        
+        alert(`✅ "${nomeMembro}" adicionado à câmara "${nomeCamara}"!`);
+      }
+    }
+
+    function removerMembroCamara(btn) {
+      if(!modoEdicao) return;
+      
+      if(confirm('❓ Remover este membro da câmara?')) {
+        const camara = btn.closest('.camara');
+        btn.closest('.camara-membro').remove();
+        atualizarContadorCamara(camara);
+      }
+    }
+    // ============================================
+    // CÂMARAS TEMÁTICAS
+    // ============================================
+    function abrirModalCriarCamara() {
+      if(!modoEdicao) {
+        alert('⚠️ Ative o modo de edição primeiro!');
+        return;
+      }
+      document.getElementById('modalCriarCamara').classList.add('active');
+    }
+
+    function confirmarCriarCamara() {
+      const nome = document.getElementById('inputNomeCamara').value;
+      const emoji = document.getElementById('inputEmojiCamara').value || '📋';
+      const slug = document.getElementById('inputSlugCamara').value;
+      
+      if(!nome || !slug) {
+        alert('⚠️ Preencha nome e slug!');
+        return;
+      }
+      
+      const grid = document.getElementById('camarasGrid');
+      const novaCamara = document.createElement('div');
+      novaCamara.className = 'camara';
+      novaCamara.dataset.camara = slug;
+      novaCamara.innerHTML = `
+        <div class="camara-header">
+          <div class="camara-nome">${emoji} ${nome}</div>
+          <div class="camara-contador">0 membros</div>
+          <button class="btn-editar-nome-camara" onclick="editarNomeCamara(this)">✏️</button>
+          <button class="btn-remover-camara" onclick="removerCamara(this)">🗑️</button>
+        </div>
+        <div class="camara-membros"></div>
+        <div class="camara-atividades"></div>
+        <div class="camara-gts"></div>
+        <button class="btn-add-atividade" onclick="abrirModalAdicionarAtividade(this, false)">✅ Atividade</button>
+        <button class="btn-add-gt" onclick="abrirModalCriarGT(this)">📋 GT</button>
+      `;
+      
+      grid.appendChild(novaCamara);
+      configurarDragAndDrop();
+      
+      fecharModal('modalCriarCamara');
+      alert(`✅ Câmara "${nome}" criada!`);
+      
+      document.getElementById('inputNomeCamara').value = '';
+      document.getElementById('inputEmojiCamara').value = '';
+      document.getElementById('inputSlugCamara').value = '';
+    }
+
+    function editarNomeCamara(btn) {
+      if(!modoEdicao) return;
+      
+      const camara = btn.closest('.camara');
+      const nomeAtual = camara.querySelector('.camara-nome').textContent;
+      
+      camaraEdicaoNomeAtual = camara;
+      document.getElementById('inputNovoNomeCamara').value = nomeAtual;
+      document.getElementById('modalEditarNomeCamara').classList.add('active');
+    }
+
+    function confirmarEditarNomeCamara() {
+      const novoNome = document.getElementById('inputNovoNomeCamara').value;
+      
+      if(!novoNome) {
+        alert('⚠️ Digite um nome!');
+        return;
+      }
+      
+      if(camaraEdicaoNomeAtual) {
+        camaraEdicaoNomeAtual.querySelector('.camara-nome').textContent = novoNome;
+        fecharModal('modalEditarNomeCamara');
+        alert('✅ Nome da câmara atualizado!');
+      }
+    }
+
+    function removerCamara(btn) {
+      if(!modoEdicao) return;
+      
+      if(confirm('❓ Remover esta câmara?\n\nTodos os membros, atividades e GTs serão perdidos!')) {
+        btn.closest('.camara').remove();
+        alert('✅ Câmara removida!');
+      }
+    }
+
+    // ============================================
+    // ATIVIDADES
+    // ============================================
+    function abrirModalAdicionarAtividade(btn, isGT) {
+      if(!modoEdicao) {
+        alert('⚠️ Ative o modo de edição primeiro!');
+        return;
+      }
+      
+      elementoAtividadeAtual = btn;
+      isAtividadeGT = isGT;
+      atividadeEmEdicao = null;
+      
+      document.getElementById('headerAtividade').textContent = isGT ? '✅ Adicionar Atividade ao GT' : '✅ Adicionar Atividade';
+      document.getElementById('inputObjetivoAtiv').value = '';
+      document.getElementById('inputResponsavelAtiv').value = '';
+      document.getElementById('inputPrazoAtiv').value = '';
+      document.getElementById('inputResultadoAtiv').value = '';
+      
+      document.getElementById('modalAdicionarAtividade').classList.add('active');
+    }
+
+    function editarAtividade(btn) {
+      if(!modoEdicao) return;
+      
+      const atividade = btn.closest('.atividade-card');
+      atividadeEmEdicao = atividade;
+      
+      const objetivo = atividade.querySelector('.atividade-titulo')?.textContent || '';
+      const responsavel = atividade.querySelector('.atividade-info')?.textContent.replace('👤 ', '').split(' | ')[0] || '';
+      const prazo = atividade.dataset.prazo || '';
+      const resultado = atividade.querySelector('.atividade-resultado')?.textContent.replace('📌 ', '') || '';
+      
+      document.getElementById('headerAtividade').textContent = '✏️ Editar Atividade';
+      document.getElementById('inputObjetivoAtiv').value = objetivo;
+      document.getElementById('inputResponsavelAtiv').value = responsavel;
+      document.getElementById('inputPrazoAtiv').value = prazo;
+      document.getElementById('inputResultadoAtiv').value = resultado;
+      
+      elementoAtividadeAtual = btn;
+      isAtividadeGT = atividade.closest('.gt-atividades-internas') !== null;
+      
+      document.getElementById('modalAdicionarAtividade').classList.add('active');
+    }
+
+    function confirmarAdicionarAtividade() {
+      const objetivo = document.getElementById('inputObjetivoAtiv').value;
+      const responsavel = document.getElementById('inputResponsavelAtiv').value;
+      const prazo = document.getElementById('inputPrazoAtiv').value;
+      const resultado = document.getElementById('inputResultadoAtiv').value;
+      
+      if(!objetivo || !responsavel || !prazo) {
+        alert('⚠️ Preencha objetivo, responsável e prazo!');
+        return;
+      }
+      
+      fecharModal('modalAdicionarAtividade');
+      
+      if(resultado) {
+        document.getElementById('modalStatusAtividade').classList.add('active');
+      } else {
+        finalizarAdicionarAtividade(false);
+      }
+    }
+
+    function marcarStatusAtividade(concluida) {
+      fecharModal('modalStatusAtividade');
+      finalizarAdicionarAtividade(concluida);
+    }
+
+    function finalizarAdicionarAtividade(concluida) {
+      const objetivo = document.getElementById('inputObjetivoAtiv').value;
+      const responsavel = document.getElementById('inputResponsavelAtiv').value;
+      const prazo = document.getElementById('inputPrazoAtiv').value;
+      const resultado = document.getElementById('inputResultadoAtiv').value;
+      
+      const dataFormatada = new Date(prazo).toLocaleDateString('pt-BR');
+      
+      if(atividadeEmEdicao) {
+        atividadeEmEdicao.querySelector('.atividade-titulo').textContent = objetivo;
+        atividadeEmEdicao.querySelector('.atividade-info').textContent = `👤 ${responsavel} | 📅 ${dataFormatada}`;
+        atividadeEmEdicao.dataset.prazo = prazo;
+        atividadeEmEdicao.dataset.concluida = resultado ? concluida : 'false';
+        
+        const resultadoEl = atividadeEmEdicao.querySelector('.atividade-resultado');
+        if(resultado) {
+          if(resultadoEl) {
+            resultadoEl.textContent = `📌 ${resultado}`;
+          } else {
+            const novoResultado = document.createElement('div');
+            novoResultado.className = 'atividade-resultado';
+            novoResultado.textContent = `📌 ${resultado}`;
+            atividadeEmEdicao.querySelector('.atividade-info').after(novoResultado);
+          }
+          
+          const statusEl = atividadeEmEdicao.querySelector('.atividade-status');
+          if(statusEl) {
+            statusEl.className = `atividade-status ${concluida ? 'concluida' : 'nao-concluida'}`;
+            statusEl.textContent = concluida ? '✅ CONCLUÍDA' : '⏳ NÃO CONCLUÍDA';
+          }
+        }
+        
+        alert('✅ Atividade atualizada!');
+      } else {
+        const atividade = document.createElement('div');
+        atividade.className = 'atividade-card';
+        atividade.dataset.prazo = prazo;
+        atividade.dataset.concluida = resultado ? concluida : 'false';
+        
+        atividade.innerHTML = `
+          <div class="atividade-titulo">${objetivo}</div>
+          <div class="atividade-info">👤 ${responsavel} | 📅 ${dataFormatada}</div>
+          ${resultado ? `<div class="atividade-resultado">📌 ${resultado}</div>` : ''}
+          ${resultado ? `<div class="atividade-status ${concluida ? 'concluida' : 'nao-concluida'}">${concluida ? '✅ CONCLUÍDA' : '⏳ NÃO CONCLUÍDA'}</div>` : ''}
+          <button class="btn-edit-atividade" onclick="editarAtividade(this)">✏️</button>
+          <button class="btn-remove" onclick="removerAtividade(this)">🗑️</button>
+        `;
+        
+        if(isAtividadeGT) {
+          const gt = elementoAtividadeAtual.closest('.gt-card');
+          let container = gt.querySelector('.gt-atividades-internas');
+          if(!container) {
+            container = document.createElement('div');
+            container.className = 'gt-atividades-internas';
+            gt.querySelector('.gt-objetivo').after(container);
+          }
+          container.appendChild(atividade);
+        } else {
+          const camara = elementoAtividadeAtual.closest('.camara');
+          const container = camara.querySelector('.camara-atividades');
+          container.appendChild(atividade);
+        }
+        
+        alert('✅ Atividade criada!');
+      }
+    }
+
+    function removerAtividade(btn) {
+      if(!modoEdicao) return;
+      
+      if(confirm('❓ Remover esta atividade?')) {
+        btn.closest('.atividade-card').remove();
+        alert('✅ Atividade removida!');
+      }
+    }
+
+    // ============================================
+    // GRUPOS DE TRABALHO (GT)
+    // ============================================
+    function abrirModalCriarGT(btn) {
+      if(!modoEdicao) {
+        alert('⚠️ Ative o modo de edição primeiro!');
+        return;
+      }
+      
+      elementoGTAtual = btn;
+      
+      document.getElementById('inputTituloGT').value = '';
+      document.getElementById('inputObjetivoGT').value = '';
+      document.getElementById('inputResponsavelGT').value = '';
+      document.getElementById('inputComponentesGT').value = '';
+      document.getElementById('inputResultadoGT').value = '';
+      
+      document.getElementById('modalCriarGT').classList.add('active');
+    }
+    
+    // ============================================
+    // ANÁLISES
+    // ============================================
+    function mostrarAnalise(tipo) {
+      document.querySelectorAll('.analise-content').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.analise-btn').forEach(b => b.classList.remove('active'));
+      
+      if(tipo === 'presenca') {
+        document.getElementById('analisePresenca').classList.add('active');
+        event.target.classList.add('active');
+      } else if(tipo === 'composicao') {
+        document.getElementById('analiseComposicao').classList.add('active');
+        event.target.classList.add('active');
+      } else if(tipo === 'estados') {
+        document.getElementById('analiseEstados').classList.add('active');
+        event.target.classList.add('active');
+      } else if(tipo === 'atividades') {
+        document.getElementById('analiseAtividades').classList.add('active');
+        event.target.classList.add('active');
+        gerarAnaliseAtividades();
+      }
+    }
+
+    function gerarAnalises() {
+      gerarRankingPresenca();
+      gerarComposicao();
+      gerarPorEstado();
+      gerarAnaliseAtividades();
+    }
+
+    function gerarRankingPresenca() {
+      const membros = [];
+      
+      document.querySelectorAll('.membro-linha:not(.vazio)').forEach(membro => {
+        const nome = membro.querySelector('.nome-membro')?.textContent || '';
+        const entidade = membro.querySelector('.entidade-membro')?.textContent || '';
+        const boneco = membro.querySelector('.bonequinho')?.textContent || '👤';
+        const bolinhas = membro.querySelectorAll('.bolinha-presenca');
+        
+        let presencas = 0;
+        let justificadas = 0;
+        let faltas = 0;
+        
+        bolinhas.forEach(b => {
+          if(b.classList.contains('verde')) presencas++;
+          else if(b.classList.contains('amarelo')) justificadas++;
+          else if(b.classList.contains('vermelho')) faltas++;
+        });
+        
+        const score = (presencas * 10) + (justificadas * 5);
+        
+        if(nome && nome !== 'VAGA' && nome.trim() !== '' && nome !== '-') {
+          membros.push({ nome, entidade, boneco, presencas, justificadas, faltas, score });
+        }
+      });
+      
+      membros.sort((a, b) => b.score - a.score);
+      
+      const container = document.getElementById('rankingContainer');
+      container.innerHTML = '';
+      
+      if(membros.length === 0) {
+        container.innerHTML = '<div class="mensagem-vazio">Nenhum registro de presença encontrado</div>';
+        return;
+      }
+      
+      membros.forEach((m, index) => {
+        const item = document.createElement('div');
+        item.className = 'ranking-item';
+        item.style.cssText = `
+          display: flex; align-items: center; gap: 15px; padding: 12px; 
+          margin-bottom: 8px; background: #f8f9fa; border-radius: 8px; 
+          border-left: 4px solid #51cf66;
+        `;
+        item.innerHTML = `
+          <div style="font-size: 1.5em; font-weight: bold; color: #667eea; min-width: 40px; text-align: center;">${index + 1}º</div>
+          <div style="font-size: 2em;">${m.boneco}</div>
+          <div style="flex: 1;">
+            <div style="font-weight: bold; font-size: 1em; color: #2c3e50;">${m.nome}</div>
+            <div style="font-size: 0.85em; color: #6c757d; font-style: italic;">${m.entidade}</div>
+          </div>
+          <div style="font-size: 1.2em; font-weight: bold; color: #51cf66; min-width: 80px; text-align: center;">${m.score} pts</div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function gerarComposicao() {
+      const container = document.getElementById('composicaoContainer');
+      container.innerHTML = '';
+      
+      const grupos = [
+        { id: 'poder-publico', titulo: '⚖️ PODER PÚBLICO' },
+        { id: 'sociedade-civil', titulo: '🤝 SOCIEDADE CIVIL' }
+      ];
+      
+      grupos.forEach(grupoInfo => {
+        const grupo = document.getElementById(grupoInfo.id);
+        if(!grupo) return;
+        
+        const grupoDiv = document.createElement('div');
+        grupoDiv.className = 'composicao-grupo';
+        
+        const titulo = document.createElement('div');
+        titulo.className = 'composicao-grupo-titulo';
+        titulo.textContent = grupoInfo.titulo;
+        grupoDiv.appendChild(titulo);
+        
+        // ⭐ CONTADOR DE SETORES E CADEIRAS
+        const setores = grupo.querySelectorAll('.setor');
+        const numSetores = setores.length;
+        const numCadeiras = grupo.querySelectorAll('.cadeira').length;
+        
+        const contadorDiv = document.createElement('div');
+        contadorDiv.className = 'grupo-contador';
+        contadorDiv.innerHTML = `
+          <span>📂 Setores: <strong class="contador-setores">${numSetores}</strong></span>
+          <span>🪑 Cadeiras: <strong class="contador-cadeiras-total">${numCadeiras}</strong></span>
+        `;
+        grupoDiv.appendChild(contadorDiv);
+        
+        setores.forEach(setor => {
+          const setorDiv = document.createElement('div');
+          setorDiv.className = 'composicao-setor';
+          
+          const tituloSetor = setor.querySelector('.titulo-setor .editable')?.textContent || 'Setor';
+          const numCadeirasSetor = setor.querySelectorAll('.cadeira').length;
+          
+          const tituloSetorDiv = document.createElement('div');
+          tituloSetorDiv.className = 'composicao-setor-titulo';
+          tituloSetorDiv.innerHTML = `
+            ${tituloSetor}
+            <span class="composicao-cadeiras-info">${numCadeirasSetor} cadeira${numCadeirasSetor !== 1 ? 's' : ''}</span>
+          `;
+          setorDiv.appendChild(tituloSetorDiv);
+          
+          const cadeirasContainer = document.createElement('div');
+          cadeirasContainer.className = 'composicao-cadeiras-container';
+          
+          setor.querySelectorAll('.cadeira').forEach(cadeira => {
+            const cadeiraBloco = document.createElement('div');
+            cadeiraBloco.className = 'composicao-cadeira-bloco';
+            
+            const icone = cadeira.querySelector('.icone-cadeira')?.textContent || '🪑';
+            const iconeDiv = document.createElement('div');
+            iconeDiv.className = 'composicao-icone-cadeira';
+            iconeDiv.textContent = icone;
+            cadeiraBloco.appendChild(iconeDiv);
+            
+            const membrosDiv = document.createElement('div');
+            membrosDiv.className = 'composicao-membros-cadeira';
+            
+            cadeira.querySelectorAll('.membro-linha').forEach(membro => {
+              const nome = membro.querySelector('.nome-membro')?.textContent || '';
+              const entidade = membro.querySelector('.entidade-membro')?.textContent || '';
+              const boneco = membro.querySelector('.bonequinho')?.textContent || '👤';
+              const tipo = membro.classList.contains('titular') ? 'titular' : 'suplente';
+              const estado = membro.dataset.estado || '';
+              
+              const card = document.createElement('div');
+              card.className = 'composicao-card';
+              card.dataset.estado = estado;
+              card.innerHTML = `
+                <div class="composicao-boneco">${boneco}</div>
+                <div class="composicao-entidade">${nome}</div>
+                <div class="composicao-cargo ${tipo}">${tipo === 'titular' ? 'Titular' : 'Suplente'}</div>
+              `;
+              membrosDiv.appendChild(card);
+            });
+            
+            cadeiraBloco.appendChild(membrosDiv);
+            cadeirasContainer.appendChild(cadeiraBloco);
+          });
+          
+          setorDiv.appendChild(cadeirasContainer);
+          grupoDiv.appendChild(setorDiv);
+        });
+        
+        container.appendChild(grupoDiv);
+      });
+    }
+
+    function gerarPorEstado() {
+      const container = document.getElementById('estadosContainer');
+      container.innerHTML = '';
+      
+      const estados = {
+        'MA': { nome: 'MARANHÃO', emoji: '🏖️', membros: [] },
+        'PI': { nome: 'PIAUÍ', emoji: '🌊', membros: [] },
+        'CE': { nome: 'CEARÁ', emoji: '☀️', membros: [] }
+      };
+      
+      document.querySelectorAll('.membro-linha:not(.vazio)').forEach(membro => {
+        const nome = membro.querySelector('.nome-membro')?.textContent || '';
+        const entidade = membro.querySelector('.entidade-membro')?.textContent || '';
+        const municipio = membro.querySelector('.municipio-membro')?.textContent.replace('📍 ', '') || '';
+        const boneco = membro.querySelector('.bonequinho')?.textContent || '👤';
+        const estado = membro.dataset.estado || '';
+        
+        if(nome && nome !== 'VAGA' && nome.trim() !== '' && estados[estado]) {
+          estados[estado].membros.push({ nome, entidade, municipio, boneco });
+        }
+      });
+      
+      Object.keys(estados).forEach(sigla => {
+        const estado = estados[sigla];
+        
+        const estadoDiv = document.createElement('div');
+        estadoDiv.style.cssText = `
+          margin-bottom: 25px; padding: 15px; border-radius: 10px;
+        `;
+        
+        if(sigla === 'MA') estadoDiv.style.cssText += 'background: linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%);';
+        if(sigla === 'PI') estadoDiv.style.cssText += 'background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);';
+        if(sigla === 'CE') estadoDiv.style.cssText += 'background: linear-gradient(135deg, #FFE0E0 0%, #FFCDD2 100%);';
+        
+        const titulo = document.createElement('div');
+        titulo.style.cssText = `
+          font-size: 1.4em; font-weight: bold; color: #2c3e50; 
+          margin-bottom: 12px; padding-bottom: 8px; 
+          border-bottom: 2px solid #667eea; display: flex; 
+          align-items: center; gap: 8px;
+        `;
+        titulo.innerHTML = `
+          ${estado.emoji} ${estado.nome}
+          <span style="background: #667eea; color: white; padding: 4px 12px; border-radius: 15px; font-size: 0.7em;">
+            ${estado.membros.length} membro${estado.membros.length !== 1 ? 's' : ''}
+          </span>
+        `;
+        estadoDiv.appendChild(titulo);
+        
+        const grid = document.createElement('div');
+        grid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px;';
+        
+        if(estado.membros.length === 0) {
+          grid.innerHTML = '<div style="text-align: center; padding: 20px; color: #6c757d; font-style: italic;">Nenhum membro deste estado</div>';
+        } else {
+          estado.membros.forEach(m => {
+            const card = document.createElement('div');
+            card.style.cssText = `
+              background: white; border: 2px solid #dee2e6; 
+              border-radius: 8px; padding: 10px; text-align: center;
+            `;
+            card.innerHTML = `
+              <div style="font-size: 2em; margin-bottom: 5px;">${m.boneco}</div>
+              <div style="font-weight: bold; font-size: 0.8em; color: #2c3e50; margin-bottom: 3px;">${m.nome}</div>
+              <div style="font-size: 0.7em; color: #6c757d; font-style: italic; margin-bottom: 3px;">${m.entidade}</div>
+              <div style="font-size: 0.65em; color: #868e96;">${m.municipio}</div>
+            `;
+            grid.appendChild(card);
+          });
+        }
+        
+        estadoDiv.appendChild(grid);
+        container.appendChild(estadoDiv);
+      });
+    }
+
+    function gerarAnaliseAtividades() {
+      const container = document.getElementById('atividadesContainer');
+      container.innerHTML = '';
+      
+      const atividades = [];
+      
+      document.querySelectorAll('.atividade-card').forEach(ativ => {
+        const titulo = ativ.querySelector('.atividade-titulo')?.textContent || '';
+        const info = ativ.querySelector('.atividade-info')?.textContent || '';
+        const resultado = ativ.querySelector('.atividade-resultado')?.textContent.replace('📌 ', '') || '';
+        const concluida = ativ.dataset.concluida === 'true';
+        const prazo = ativ.dataset.prazo || '';
+        
+        const camara = ativ.closest('.camara');
+        const nomeCamara = camara ? camara.querySelector('.camara-nome')?.textContent : 'Geral';
+        
+        atividades.push({ titulo, info, resultado, concluida, prazo, nomeCamara });
+      });
+      
+      if(atividades.length === 0) {
+        container.innerHTML = '<div class="mensagem-vazio">Nenhuma atividade cadastrada</div>';
+        return;
+      }
+      
+      atividades.forEach(a => {
+        const card = document.createElement('div');
+        card.style.cssText = `
+          background: linear-gradient(135deg, #d3f9d8 0%, #b2f2bb 100%); 
+          border-radius: 8px; padding: 10px; margin-bottom: 8px; 
+          border-left: 3px solid #51cf66;
+        `;
+        card.innerHTML = `
+          <div style="font-weight: bold; color: #2c3e50; margin-bottom: 4px; font-size: 0.85em;">${a.titulo}</div>
+          <div style="font-size: 0.75em; color: #495057; margin-bottom: 4px;">${a.info} | 🏛️ ${a.nomeCamara}</div>
+          ${a.resultado ? `<div style="background: white; padding: 6px; border-radius: 4px; font-size: 0.75em; color: #2c3e50; margin-top: 6px; border-left: 3px solid #667eea;">📌 ${a.resultado}</div>` : ''}
+          ${a.resultado ? `<div style="margin-top: 6px; padding: 4px 8px; border-radius: 5px; font-size: 0.7em; font-weight: bold; display: inline-block; background: ${a.concluida ? '#2ecc71' : '#ffd43b'}; color: ${a.concluida ? 'white' : '#333'};">${a.concluida ? '✅ CONCLUÍDA' : '⏳ NÃO CONCLUÍDA'}</div>` : '<div style="margin-top: 6px; padding: 4px 8px; border-radius: 5px; font-size: 0.7em; font-weight: bold; display: inline-block; background: #ffd43b; color: #333;">🔓 ABERTA</div>'}
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function editarGT(btn) {
+      if(!modoEdicao) return;
+      
+      const gt = btn.closest('.gt-card');
+      elementoGTAtual = gt;
+      
+      const titulo = gt.querySelector('.gt-titulo')?.textContent || '';
+      const responsavel = gt.querySelector('.gt-responsavel')?.textContent.replace('👤 ', '') || '';
+      const objetivo = gt.querySelector('.gt-objetivo')?.textContent.replace('🎯 ', '') || '';
+      const componentes = gt.querySelector('.gt-componentes')?.textContent.replace('👥 ', '') || '';
+      const resultado = gt.querySelector('.gt-resultado')?.textContent.replace('📌 ', '') || '';
+      
+      document.getElementById('inputTituloGT').value = titulo;
+      document.getElementById('inputObjetivoGT').value = objetivo;
+      document.getElementById('inputResponsavelGT').value = responsavel;
+      document.getElementById('inputComponentesGT').value = componentes;
+      document.getElementById('inputResultadoGT').value = resultado;
+      
+      document.getElementById('modalCriarGT').classList.add('active');
+    }
+
+    function confirmarCriarGT() {
+      const titulo = document.getElementById('inputTituloGT').value;
+      const objetivo = document.getElementById('inputObjetivoGT').value;
+      const responsavel = document.getElementById('inputResponsavelGT').value;
+      const componentes = document.getElementById('inputComponentesGT').value;
+      const resultado = document.getElementById('inputResultadoGT').value;
+      
+      if(!titulo || !objetivo || !responsavel) {
+        alert('⚠️ Preencha título, objetivo e responsável!');
+        return;
+      }
+      
+      if(elementoGTAtual && elementoGTAtual.classList && elementoGTAtual.classList.contains('gt-card')) {
+        elementoGTAtual.querySelector('.gt-titulo').textContent = titulo;
+        elementoGTAtual.querySelector('.gt-responsavel').textContent = `👤 ${responsavel}`;
+        elementoGTAtual.querySelector('.gt-objetivo').textContent = `🎯 ${objetivo}`;
+        
+        const compEl = elementoGTAtual.querySelector('.gt-componentes');
+        if(componentes) {
+          compEl.textContent = `👥 ${componentes}`;
+        }
+        
+        const resEl = elementoGTAtual.querySelector('.gt-resultado');
+        if(resultado) {
+          if(resEl) {
+            resEl.textContent = `📌 ${resultado}`;
+          } else {
+            const novoRes = document.createElement('div');
+            novoRes.className = 'gt-resultado';
+            novoRes.textContent = `📌 ${resultado}`;
+            elementoGTAtual.querySelector('.gt-objetivo').after(novoRes);
+          }
+        }
+        
+        alert('✅ GT atualizado!');
+      } else {
+        const camara = elementoGTAtual.closest('.camara');
+        const container = camara.querySelector('.camara-gts');
+        
+        const gt = document.createElement('div');
+        gt.className = 'gt-card';
+        gt.innerHTML = `
+          <div class="gt-titulo editable" contenteditable="false">${titulo}</div>
+          <div class="gt-responsavel editable" contenteditable="false">👤 ${responsavel}</div>
+          <div class="gt-objetivo editable" contenteditable="false">🎯 ${objetivo}</div>
+          ${componentes ? `<div class="gt-componentes editable" contenteditable="false">👥 ${componentes}</div>` : ''}
+          ${componentes ? `<button class="btn-ver-componentes" onclick="toggleComponentes(this)">👥 Ver Componentes</button>` : ''}
+          ${resultado ? `<div class="gt-resultado">📌 ${resultado}</div>` : ''}
+          <div class="gt-atividades-internas"></div>
+          <button class="btn-edit-gt" onclick="editarGT(this)">✏️ Editar</button>
+          <button class="btn-add-atividade" onclick="abrirModalAdicionarAtividade(this, true)">✅ Atividade GT</button>
+          <button class="btn-remove" onclick="removerGT(this)">🗑️</button>
+        `;
+        
+        container.appendChild(gt);
+        alert('✅ GT criado!');
+      }
+      
+      fecharModal('modalCriarGT');
+    }
+
+    function removerGT(btn) {
+      if(!modoEdicao) return;
+      
+      if(confirm('❓ Remover este GT?')) {
+        btn.closest('.gt-card').remove();
+        alert('✅ GT removido!');
+      }
+    }
+
+    function toggleComponentes(btn) {
+      const gt = btn.closest('.gt-card');
+      const comp = gt.querySelector('.gt-componentes');
+      if(comp) {
+        comp.classList.toggle('show');
+        btn.textContent = comp.classList.contains('show') ? '🔼 Ocultar Componentes' : '👥 Ver Componentes';
+      }
+    }
+    
+    // ============================================
+    // SALVAR / CARREGAR JSON
+    // ============================================
+    function salvarJSON() {
+      const dados = {
+        versao: '2.0',
+        dataExportacao: new Date().toISOString(),
+        conselho: {
+          titulo: document.querySelector('.header h1')?.textContent || '',
+          subtitulo: document.querySelector('.header p')?.textContent || '',
+          proximaReuniao: {
+            data: document.getElementById('dataProximaReuniao')?.textContent || '',
+            local: document.getElementById('localProximaReuniao')?.textContent || ''
+          }
+        },
+        presidencia: extrairPresidencia(),
+        grupos: extrairGrupos(),
+        camaras: extrairCamaras()
+      };
+      
+      const json = JSON.stringify(dados, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `conselho_${new Date().toISOString().slice(0,10)}.json`;
+      link.click();
+      
+      alert('✅ JSON exportado com sucesso!');
+    }
+
+    function extrairPresidencia() {
+      const container = document.getElementById('presidenciaContainer');
+      const membros = [];
+      
+      container.querySelectorAll('.membro-linha').forEach(m => {
+        membros.push(extrairDadosMembro(m));
+      });
+      
+      return membros;
+    }
+
+    function extrairGrupos() {
+      const grupos = [];
+      
+      document.querySelectorAll('.grupo').forEach(grupo => {
+        const id = grupo.id;
+        const titulo = grupo.querySelector('.titulo-grupo')?.textContent || '';
+        const setores = [];
+        
+        grupo.querySelectorAll('.setor').forEach(setor => {
+          const nomeSetor = setor.querySelector('.titulo-setor .editable')?.textContent || '';
+          const cadeiras = [];
+          
+          setor.querySelectorAll('.cadeira').forEach(cadeira => {
+            const numero = cadeira.querySelector('.numero-cadeira')?.textContent || '';
+            const membros = [];
+            
+            cadeira.querySelectorAll('.membro-linha').forEach(m => {
+              membros.push(extrairDadosMembro(m));
+            });
+            
+            cadeiras.push({ numero, membros });
+          });
+          
+          setores.push({ nome: nomeSetor, cadeiras });
+        });
+        
+        grupos.push({ id, titulo, setores });
+      });
+      
+      return grupos;
+    }
+
+    function extrairDadosMembro(membro) {
+      const nome = membro.querySelector('.nome-membro')?.textContent || '';
+      const entidade = membro.querySelector('.entidade-membro')?.textContent || '';
+      const municipio = membro.querySelector('.municipio-membro')?.textContent.replace('📍 ', '') || '';
+      const boneco = membro.querySelector('.bonequinho')?.textContent || '👤';
+      const logo = membro.querySelector('.logo-instituicao')?.textContent || '🏛️';
+      const tipo = membro.classList.contains('titular') ? 'titular' : 'suplente';
+      const estado = membro.dataset.estado || '';
+      const curriculo = membro.dataset.curriculo || '';
+      const cpf = membro.dataset.cpf || '';
+      const email = membro.dataset.email || '';
+      
+      const bonecoPossuiImg = membro.querySelector('.bonequinho img');
+      const logoPossuiImg = membro.querySelector('.logo-instituicao img');
+      
+      const presencas = [];
+      membro.querySelectorAll('.bolinha-presenca').forEach(b => {
+        presencas.push({
+          data: b.dataset.reuniao || '',
+          local: b.dataset.local || '',
+          status: b.classList.contains('verde') ? 'presente' : b.classList.contains('amarelo') ? 'justificado' : b.classList.contains('vermelho') ? 'faltou' : 'nao-marcado'
+        });
+      });
+      
+      return {
+        nome, entidade, municipio,
+        boneco: bonecoPossuiImg ? bonecoPossuiImg.src : boneco,
+        logo: logoPossuiImg ? logoPossuiImg.src : logo,
+        tipo, estado, curriculo, cpf, email, presencas
+      };
+    }
+
+    function extrairCamaras() {
+      const camaras = [];
+      
+      document.querySelectorAll('.camara').forEach(camara => {
+        const slug = camara.dataset.camara || '';
+        const nome = camara.querySelector('.camara-nome')?.textContent || '';
+        const membros = [];
+        
+        camara.querySelectorAll('.camara-membro').forEach(m => {
+          const nomeMembro = m.querySelector('.nome-membro')?.textContent || '';
+          const boneco = m.querySelector('.bonequinho')?.textContent || '👤';
+          membros.push({ nome: nomeMembro, boneco });
+        });
+        
+        const atividades = [];
+        camara.querySelectorAll('.camara-atividades .atividade-card').forEach(a => {
+          const titulo = a.querySelector('.atividade-titulo')?.textContent || '';
+          const info = a.querySelector('.atividade-info')?.textContent || '';
+          const resultado = a.querySelector('.atividade-resultado')?.textContent.replace('📌 ', '') || '';
+          const prazo = a.dataset.prazo || '';
+          const concluida = a.dataset.concluida || 'false';
+          atividades.push({ titulo, info, resultado, prazo, concluida });
+        });
+        
+        const gts = [];
+        camara.querySelectorAll('.gt-card').forEach(gt => {
+          const titulo = gt.querySelector('.gt-titulo')?.textContent || '';
+          const responsavel = gt.querySelector('.gt-responsavel')?.textContent.replace('👤 ', '') || '';
+          const objetivo = gt.querySelector('.gt-objetivo')?.textContent.replace('🎯 ', '') || '';
+          const componentes = gt.querySelector('.gt-componentes')?.textContent.replace('👥 ', '') || '';
+          const resultado = gt.querySelector('.gt-resultado')?.textContent.replace('📌 ', '') || '';
+          
+          const atividadesGT = [];
+          gt.querySelectorAll('.gt-atividades-internas .atividade-card').forEach(a => {
+            const tituloAtiv = a.querySelector('.atividade-titulo')?.textContent || '';
+            const infoAtiv = a.querySelector('.atividade-info')?.textContent || '';
+            const resultadoAtiv = a.querySelector('.atividade-resultado')?.textContent.replace('📌 ', '') || '';
+            const prazoAtiv = a.dataset.prazo || '';
+            const concluidaAtiv = a.dataset.concluida || 'false';
+            atividadesGT.push({ titulo: tituloAtiv, info: infoAtiv, resultado: resultadoAtiv, prazo: prazoAtiv, concluida: concluidaAtiv });
+          });
+          
+          gts.push({ titulo, responsavel, objetivo, componentes, resultado, atividades: atividadesGT });
+        });
+        
+        camaras.push({ slug, nome, membros, atividades, gts });
+      });
+      
+      return camaras;
+    }
+
+    function carregarJSON(input) {
+      const file = input.files[0];
+      if(!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const dados = JSON.parse(e.target.result);
+          aplicarDadosJSON(dados);
+          alert('✅ JSON carregado com sucesso!');
+        } catch(err) {
+          alert('❌ Erro ao carregar JSON: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function aplicarDadosJSON(dados) {
+      if(dados.conselho) {
+        if(dados.conselho.titulo) document.querySelector('.header h1').textContent = dados.conselho.titulo;
+        if(dados.conselho.subtitulo) document.querySelector('.header p').textContent = dados.conselho.subtitulo;
+        if(dados.conselho.proximaReuniao) {
+          document.getElementById('dataProximaReuniao').textContent = dados.conselho.proximaReuniao.data || '--/--/----';
+          document.getElementById('localProximaReuniao').textContent = dados.conselho.proximaReuniao.local || '---';
+        }
+      }
+      
+      if(dados.presidencia) {
+        const container = document.getElementById('presidenciaContainer');
+        container.innerHTML = '';
+        dados.presidencia.forEach(m => {
+          container.appendChild(criarMembroHTML(m));
+        });
+      }
+      
+      if(dados.grupos) {
+        dados.grupos.forEach(grupo => {
+          const grupoEl = document.getElementById(grupo.id);
+          if(!grupoEl) return;
+          
+          const conteudoGrupo = grupoEl.querySelector('.grupo-conteudo');
+          conteudoGrupo.querySelectorAll('.setor').forEach(s => s.remove());
+          
+          grupo.setores.forEach(setor => {
+            const setorEl = document.createElement('div');
+            setorEl.className = 'setor';
+            setorEl.innerHTML = `
+              <div class="setor-header-wrapper" onclick="toggleSetor(this)">
+                <div class="setor-seta">▼</div>
+                <div class="titulo-setor">
+                  <span class="editable" contenteditable="false">${setor.nome}</span>
+                  <span class="contador-cadeiras">0 cadeiras</span>
+                  <button class="btn-remove" onclick="event.stopPropagation(); removerSetor(this)">🗑️</button>
+                </div>
+              </div>
+              <div class="setor-conteudo">
+                <button class="btn-add-cadeira" onclick="adicionarCadeira(this)">➕ Cadeira</button>
+              </div>
+            `;
+            
+            const btnAddSetor = conteudoGrupo.querySelector('.btn-add-setor');
+            conteudoGrupo.insertBefore(setorEl, btnAddSetor);
+            
+            setor.cadeiras.forEach(cadeira => {
+              const cadeiraEl = document.createElement('div');
+              cadeiraEl.className = 'cadeira';
+              cadeiraEl.innerHTML = `
+                <div class="cadeira-header">
+                  <span class="icone-cadeira">🪑</span>
+                  <span class="numero-cadeira">${cadeira.numero}</span>
+                  <button class="btn-remove" onclick="removerCadeira(this)">🗑️</button>
+                </div>
+                <div class="cadeira-membros-container"></div>
+                <button class="btn-add-membro" onclick="abrirModalAdicionarMembro(this)">➕ Adicionar Membro</button>
+              `;
+              
+              const setorConteudo = setorEl.querySelector('.setor-conteudo');
+              const btnAddCadeira = setorConteudo.querySelector('.btn-add-cadeira');
+              setorConteudo.insertBefore(cadeiraEl, btnAddCadeira);
+              
+              const membroContainer = cadeiraEl.querySelector('.cadeira-membros-container');
+              cadeira.membros.forEach(m => {
+                membroContainer.appendChild(criarMembroHTML(m));
+              });
+            });
+            
+            atualizarContadorCadeiras(setorEl);
+          });
+          
+          atualizarContadoresGrupo(grupo.id);
+        });
+      }
+      
+      if(dados.camaras) {
+        const grid = document.getElementById('camarasGrid');
+        grid.innerHTML = '';
+        
+        dados.camaras.forEach(camara => {
+          const camaraEl = document.createElement('div');
+          camaraEl.className = 'camara';
+          camaraEl.dataset.camara = camara.slug;
+          camaraEl.innerHTML = `
+            <div class="camara-header">
+              <div class="camara-nome">${camara.nome}</div>
+              <div class="camara-contador">0 membros</div>
+              <button class="btn-editar-nome-camara" onclick="editarNomeCamara(this)">✏️</button>
+              <button class="btn-remover-camara" onclick="removerCamara(this)">🗑️</button>
+            </div>
+            <div class="camara-membros"></div>
+            <div class="camara-atividades"></div>
+            <div class="camara-gts"></div>
+            <button class="btn-add-atividade" onclick="abrirModalAdicionarAtividade(this, false)">✅ Atividade</button>
+            <button class="btn-add-gt" onclick="abrirModalCriarGT(this)">📋 GT</button>
+          `;
+          
+          grid.appendChild(camaraEl);
+          
+          const membrosContainer = camaraEl.querySelector('.camara-membros');
+          camara.membros.forEach(m => {
+            const membroEl = document.createElement('div');
+            membroEl.className = 'camara-membro';
+            membroEl.innerHTML = `
+              <span class="bonequinho">${m.boneco}</span>
+              <div class="nome-membro">${m.nome}</div>
+              <button class="btn-remove" onclick="removerMembroCamara(this)">🗑️</button>
+            `;
+            membrosContainer.appendChild(membroEl);
+          });
+          
+          const atividadesContainer = camaraEl.querySelector('.camara-atividades');
+          camara.atividades.forEach(a => {
+            const ativEl = document.createElement('div');
+            ativEl.className = 'atividade-card';
+            ativEl.dataset.prazo = a.prazo;
+            ativEl.dataset.concluida = a.concluida;
+            ativEl.innerHTML = `
+              <div class="atividade-titulo">${a.titulo}</div>
+              <div class="atividade-info">${a.info}</div>
+              ${a.resultado ? `<div class="atividade-resultado">📌 ${a.resultado}</div>` : ''}
+              ${a.resultado ? `<div class="atividade-status ${a.concluida === 'true' ? 'concluida' : 'nao-concluida'}">${a.concluida === 'true' ? '✅ CONCLUÍDA' : '⏳ NÃO CONCLUÍDA'}</div>` : ''}
+              <button class="btn-edit-atividade" onclick="editarAtividade(this)">✏️</button>
+              <button class="btn-remove" onclick="removerAtividade(this)">🗑️</button>
+            `;
+            atividadesContainer.appendChild(ativEl);
+          });
+          
+          const gtsContainer = camaraEl.querySelector('.camara-gts');
+          camara.gts.forEach(gt => {
+            const gtEl = document.createElement('div');
+            gtEl.className = 'gt-card';
+            gtEl.innerHTML = `
+              <div class="gt-titulo editable" contenteditable="false">${gt.titulo}</div>
+              <div class="gt-responsavel editable" contenteditable="false">👤 ${gt.responsavel}</div>
+              <div class="gt-objetivo editable" contenteditable="false">🎯 ${gt.objetivo}</div>
+              ${gt.componentes ? `<div class="gt-componentes editable" contenteditable="false">👥 ${gt.componentes}</div>` : ''}
+              ${gt.componentes ? `<button class="btn-ver-componentes" onclick="toggleComponentes(this)">👥 Ver Componentes</button>` : ''}
+              ${gt.resultado ? `<div class="gt-resultado">📌 ${gt.resultado}</div>` : ''}
+              <div class="gt-atividades-internas"></div>
+              <button class="btn-edit-gt" onclick="editarGT(this)">✏️ Editar</button>
+              <button class="btn-add-atividade" onclick="abrirModalAdicionarAtividade(this, true)">✅ Atividade GT</button>
+              <button class="btn-remove" onclick="removerGT(this)">🗑️</button>
+            `;
+            
+            gtsContainer.appendChild(gtEl);
+            
+            const atividadesGT = gtEl.querySelector('.gt-atividades-internas');
+            if(gt.atividades) {
+              gt.atividades.forEach(a => {
+                const ativEl = document.createElement('div');
+                ativEl.className = 'atividade-card';
+                ativEl.dataset.prazo = a.prazo;
+                ativEl.dataset.concluida = a.concluida;
+                ativEl.innerHTML = `
+                  <div class="atividade-titulo">${a.titulo}</div>
+                  <div class="atividade-info">${a.info}</div>
+                  ${a.resultado ? `<div class="atividade-resultado">📌 ${a.resultado}</div>` : ''}
+                  ${a.resultado ? `<div class="atividade-status ${a.concluida === 'true' ? 'concluida' : 'nao-concluida'}">${a.concluida === 'true' ? '✅ CONCLUÍDA' : '⏳ NÃO CONCLUÍDA'}</div>` : ''}
+                  <button class="btn-edit-atividade" onclick="editarAtividade(this)">✏️</button>
+                  <button class="btn-remove" onclick="removerAtividade(this)">🗑️</button>
+                `;
+                atividadesGT.appendChild(ativEl);
+              });
+            }
+          });
+          
+          atualizarContadorCamara(camaraEl);
+        });
+      }
+      
+      configurarDragAndDrop();
+    }
+
+    function criarMembroHTML(m) {
+  const membro = document.createElement('div');
+  membro.className = `membro-linha ${m.tipo}`;
+  membro.draggable = true;
+  membro.dataset.id = `membro-${Date.now()}-${Math.random()}`;
+  membro.dataset.estado = m.estado || '';
+  membro.dataset.curriculo = m.curriculo || '';
+  membro.dataset.cpf = m.cpf || '';
+  membro.dataset.email = m.email || '';
+  
+  const boneco = m.boneco && m.boneco.startsWith('data:') ? `<img src="${m.boneco}" alt="foto">` : m.boneco;
+  const logo = m.logo && m.logo.startsWith('data:') ? `<img src="${m.logo}" alt="logo">` : m.logo;
+  
+  membro.innerHTML = `
+    <div class="membro-linha-top" onclick="editarMembroCompleto(this)">
+      <div class="avatar-container">
+        <span class="bonequinho" onclick="event.stopPropagation(); abrirEscolherEmoji(this, 'pessoa')">${boneco}</span>
+        <span class="logo-instituicao" onclick="event.stopPropagation(); abrirEscolherEmoji(this, 'logo')">${logo}</span>
+      </div>
+      <span class="etiqueta-cargo ${m.tipo}">${m.tipo === 'titular' ? 'Titular' : 'Suplente'}</span>
+      <div class="info-membro">
+        <div class="nome-membro">${m.nome}</div>
+        <div class="entidade-membro">${m.entidade || '-'}</div>
+        <div class="municipio-membro">📍 ${m.municipio || '-'}</div>
+        <button class="btn-ver-curriculo" onclick="event.stopPropagation(); verEditarCurriculo(this)"></button>
+      </div>
+    </div>
+    <div class="presenca-container">
+      <span class="presenca-label">Presenças:</span>
+    </div>
+    <button class="btn-remove" onclick="removerMembro(this)" style="margin-top:5px;">🗑️ Remover</button>
+  `;
+  
+  const presencaContainer = membro.querySelector('.presenca-container');
+  if(m.presencas) {
+    m.presencas.forEach(p => {
+      const bolinha = document.createElement('div');
+      bolinha.className = 'bolinha-presenca';
+      bolinha.dataset.reuniao = p.data;
+      bolinha.dataset.local = p.local;
+      bolinha.title = `${p.data} - ${p.local}`;
+      
+      if(p.status === 'presente') bolinha.classList.add('verde');
+      else if(p.status === 'justificado') bolinha.classList.add('amarelo');
+      else if(p.status === 'faltou') bolinha.classList.add('vermelho');
+      
+      bolinha.onclick = function() { togglePresenca(this); };
+      presencaContainer.appendChild(bolinha);
+    });
+  }
+  
+  return membro;
+}
+
+    function limparConselho() {
+      if(!confirm('⚠️ ATENÇÃO!\n\nIsso irá APAGAR TODOS OS DADOS do conselho!\n\nDeseja continuar?')) {
+        return;
+      }
+      
+      if(!confirm('🚨 ÚLTIMA CONFIRMAÇÃO!\n\nTodos os membros, setores, cadeiras e câmaras serão PERMANENTEMENTE APAGADOS!\n\nTem certeza absoluta?')) {
+        return;
+      }
+      
+      document.getElementById('presidenciaContainer').innerHTML = '';
+      
+      document.querySelectorAll('.grupo').forEach(grupo => {
+        const conteudoGrupo = grupo.querySelector('.grupo-conteudo');
+        conteudoGrupo.querySelectorAll('.setor').forEach(s => s.remove());
+        atualizarContadoresGrupo(grupo.id);
+      });
+      
+      document.getElementById('camarasGrid').innerHTML = '';
+      
+      document.getElementById('dataProximaReuniao').textContent = '--/--/----';
+      document.getElementById('localProximaReuniao').textContent = '---';
+      
+      toggleMenu();
+      alert('✅ Conselho limpo com sucesso!\n\nAgora você tem um sistema vazio pronto para cadastrar novos dados.');
+    }
+function editarMembroCompleto(elementoClicado) {
+  if(!modoEdicao) return;
+  
+  const membroLinha = elementoClicado.closest('.membro-linha');
+  
+  // Preencher campos do modal com dados atuais
+  document.getElementById('inputNomeMembro').value = membroLinha.querySelector('.nome-membro')?.textContent || '';
+  document.getElementById('inputEntidadeMembro').value = membroLinha.querySelector('.entidade-membro')?.textContent.replace('-', '').trim() || '';
+  document.getElementById('inputMunicipioMembro').value = membroLinha.querySelector('.municipio-membro')?.textContent.replace('📍', '').trim() || '';
+  document.getElementById('inputEstadoMembro').value = membroLinha.dataset.estado || '';
+  document.getElementById('inputCPFMembro').value = membroLinha.dataset.cpf || '';
+  document.getElementById('inputEmailMembro').value = membroLinha.dataset.email || '';
+  document.getElementById('inputCurriculoMembro').value = membroLinha.dataset.curriculo || '';
+  document.getElementById('inputTipoMembro').value = membroLinha.classList.contains('titular') ? 'titular' : 'suplente';
+  
+  // Guardar referência do membro sendo editado
+  membroAtualEditando = membroLinha;
+  
+  // Abrir modal
+  document.getElementById('modalAdicionarMembro').classList.add('active');
+}
+    function carregarJSONExemplo() {
+      fetch('conselheiros.json')
+        .then(response => response.json())
+        .then(dados => {
+          aplicarDadosJSON(dados);
+          toggleMenu();
+          alert('✅ Dados de exemplo carregados com sucesso!');
+        })
+        .catch(err => {
+          alert('❌ Erro ao carregar dados de exemplo: ' + err.message + '\n\nCertifique-se de que o arquivo "conselheiros.json" está no mesmo diretório.');
+        });
+    }
+
+    // ============================================
+    // INICIALIZAÇÃO
+    // ============================================
+    document.addEventListener('DOMContentLoaded', function() {
+      configurarDragAndDrop();
+      colapsarTudo();
+      
+      document.getElementById('inputSenha').addEventListener('keypress', function(e) {
+        if(e.key === 'Enter') verificarSenha();
+      });
+      
+      document.getElementById('inputDataReuniao').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if(value.length >= 2) value = value.slice(0,2) + '/' + value.slice(2);
+        if(value.length >= 5) value = value.slice(0,5) + '/' + value.slice(5,9);
+        e.target.value = value;
+      });
+      
+      console.log('✅ Sistema de Gestão de Conselho Consultivo v2.0 - Carregado com sucesso!');
+    });
+  </script>
+</body>
+</html>
