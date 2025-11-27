@@ -2220,6 +2220,10 @@
       document.getElementById('inputResponsavelGT').value = '';
       document.getElementById('inputComponentesGT').value = '';
       document.getElementById('inputResultadoGT').value = '';
+      
+      document.getElementById('modalCriarGT').classList.add('active');
+    }
+    
     // ============================================
     // ANÁLISES
     // ============================================
@@ -2517,10 +2521,6 @@
         `;
         container.appendChild(card);
       });
-    }
-
-      
-      document.getElementById('modalCriarGT').classList.add('active');
     }
 
     function editarGT(btn) {
