@@ -1546,6 +1546,23 @@
     </div>
   </div>
 
+  <div class="tela" id="telaDocumentos">
+    <div class="documentos-container">
+      <div class="documentos-header">
+        <div class="documentos-titulo">📁 DOCUMENTOS</div>
+        <p style="color: #6c757d; font-size: 0.95em;">Gestão de Documentos e Legislação</p>
+      </div>
+
+      <button class="btn-criar-pasta-raiz" onclick="abrirModalCriarPasta()">➕ Criar Nova Pasta</button>
+
+      <div class="documentos-lista" id="documentosLista">
+        <div class="mensagem-vazio-docs">
+          📭 Nenhum documento cadastrado
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     // ============================================
     // VARIÁVEIS GLOBAIS
@@ -1574,6 +1591,8 @@
     let pastaParenteAtual = null;
     let itemEditandoAtual = null;
     let tipoItemEditando = null;
+    let pastaAtualEdicao = null;
+    let itemAtualEdicao = null;
 
 function togglePresidencia() {
       const header = document.querySelector('.presidencia-header');
@@ -4191,22 +4210,7 @@ function abrirModalCriarCamara() {
         </div>
       </div>
     
-  <div class="tela" id="telaDocumentos">
-    <div class="documentos-container">
-      <div class="documentos-header">
-        <div class="documentos-titulo">📁 DOCUMENTOS</div>
-        <p style="color: #6c757d; font-size: 0.95em;">Gestão de Documentos e Legislação</p>
-      </div>
-
-      <button class="btn-criar-pasta-raiz" onclick="abrirModalCriarPasta()">➕ Criar Nova Pasta</button>
-
-      <div class="documentos-lista" id="documentosLista">
-        <div class="mensagem-vazio-docs">
-          📭 Nenhum documento cadastrado
-        </div>
-      </div>
-    </div>
-  </div>
+  
 
 </body>
     </html>
@@ -4356,9 +4360,6 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
             .ranking-item { display: flex; align-items: center; padding: 10px; margin-bottom: 5px; background: #f8f9fa; border-radius: 5px; }
             .footer { text-align: center; margin-top: 30px; color: #666; font-size: 0.9em; border-top: 1px solid #ddd; padding-top: 20px; }
           
-    /* DOCUMENT MANAGEMENT STYLES */
-
-  
     /* DOCUMENT MANAGEMENT STYLES */
     .documentos-container {
       background: white;
@@ -4548,6 +4549,8 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
 
     /* Drag & Drop */
     .dragging {
+      opacity: 0.5;
+    }
 
   </style>
         </head>
@@ -5526,6 +5529,16 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       });
     }
 
+    function criarElementoItem(item, pastaParenteId) {
+      if(!item) return null; // Safety check
+      
+      if(item.tipo === 'pasta') {
+        return criarElementoPasta(item, pastaParenteId);
+      } else {
+        return criarElementoDocumento(item, pastaParenteId);
+      }
+    }
+
     function criarElementoPasta(pasta, pastaParenteId) {
       const pastaDiv = document.createElement('div');
       pastaDiv.className = 'pasta-item';
@@ -5837,8 +5850,6 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
     }
 
   
-    // Closing brace added to balance
-    }
   </script>
 
     
