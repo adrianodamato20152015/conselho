@@ -967,6 +967,213 @@
       .container { flex-direction: column; } 
       .grupo { max-height: none; } 
     }
+
+    /* ============================================ */
+    /* SISTEMA DE DOCUMENTOS */
+    /* ============================================ */
+    .documentos-container {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 70px auto 20px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    }
+
+    .documentos-header {
+      text-align: center;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 3px solid #667eea;
+    }
+
+    .documentos-titulo {
+      font-size: 2em;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
+
+    .btn-criar-pasta-raiz {
+      display: none;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 15px auto;
+      box-shadow: 0 3px 12px rgba(102, 126, 234, 0.4);
+      transition: all 0.3s;
+    }
+
+    .btn-criar-pasta-raiz:hover {
+      transform: translateY(-2px);
+    }
+
+    .edit-mode .btn-criar-pasta-raiz {
+      display: block;
+    }
+
+    .documentos-lista {
+      margin-top: 20px;
+    }
+
+    /* Item de pasta */
+    .pasta-item {
+      border-left: 3px solid #667eea;
+      padding-left: 15px;
+      margin-bottom: 15px;
+    }
+
+    .pasta-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: rgba(102, 126, 234, 0.05);
+    }
+
+    .pasta-header:hover {
+      background: rgba(102, 126, 234, 0.15);
+    }
+
+    .pasta-seta {
+      font-size: 1.2em;
+      transition: transform 0.3s;
+      color: #667eea;
+      min-width: 20px;
+    }
+
+    .pasta-header.active .pasta-seta {
+      transform: rotate(90deg);
+    }
+
+    .pasta-nome {
+      font-size: 1.1em;
+      font-weight: bold;
+      color: #2c3e50;
+      flex: 1;
+    }
+
+    .pasta-acoes {
+      display: none;
+      gap: 5px;
+    }
+
+    .edit-mode .pasta-acoes {
+      display: flex;
+    }
+
+    .btn-doc-action {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.8em;
+      transition: all 0.2s;
+    }
+
+    .btn-add-item {
+      background: #51cf66;
+      color: white;
+    }
+
+    .btn-add-item:hover {
+      background: #40c057;
+    }
+
+    .btn-editar-doc {
+      background: #ffa726;
+      color: white;
+    }
+
+    .btn-editar-doc:hover {
+      background: #ff9800;
+    }
+
+    .btn-remover-doc {
+      background: #ff6b6b;
+      color: white;
+    }
+
+    .btn-remover-doc:hover {
+      background: #fa5252;
+    }
+
+    .pasta-conteudo {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease-out;
+      padding-left: 20px;
+    }
+
+    .pasta-conteudo.active {
+      max-height: 10000px;
+      padding-top: 10px;
+    }
+
+    /* Item de documento */
+    .documento-item {
+      padding: 10px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      background: white;
+      border: 1px solid #e0e0e0;
+    }
+
+    .documento-item:hover {
+      background: #f0f0f0;
+      transform: translateX(5px);
+      border-color: #667eea;
+    }
+
+    .documento-icone {
+      font-size: 1.5em;
+    }
+
+    .documento-nome {
+      flex: 1;
+      font-size: 0.95em;
+      color: #2c3e50;
+    }
+
+    .documento-acoes {
+      display: none;
+      gap: 5px;
+    }
+
+    .edit-mode .documento-acoes {
+      display: flex;
+    }
+
+    /* Drag & Drop */
+    .dragging {
+      opacity: 0.5;
+    }
+
+    .drag-over {
+      background: rgba(102, 126, 234, 0.1);
+      border: 2px dashed #667eea;
+    }
+
+    .mensagem-vazio-docs {
+      text-align: center;
+      padding: 40px 20px;
+      color: #6c757d;
+      font-style: italic;
+      font-size: 1.1em;
+    }
   </style>
 </head>
 <body class="">
@@ -980,6 +1187,7 @@
     <div class="menu-item" onclick="abrirPaletaCores()"><span>🎨</span><span>Paleta de Cores</span></div>
     <div class="menu-item" onclick="ativarModoReuniao()"><span>📋</span><span>Modo Reunião</span></div>
     <div class="menu-item" onclick="irParaTela('analises')"><span>📊</span><span>Análises</span></div>
+    <div class="menu-item" onclick="irParaTela('documentos')"><span>📁</span><span>Documentos</span></div>
     <div class="menu-item" onclick="salvarJSON()"><span>💾</span><span>Salvar JSON</span></div>
     <div class="menu-item" onclick="document.getElementById('inputCarregarJSON').click()"><span>📂</span><span>Abrir JSON</span></div>
     <div class="menu-item" onclick="limparConselho()"><span>🧹</span><span>Limpar Conselho</span></div>
@@ -1199,6 +1407,43 @@
       <button class="modal-btn modal-btn-secondary" onclick="fecharModal('modalEditarNomeCamara')">Cancelar</button>
     </div>
   </div>
+
+  <!-- Modal Criar/Editar Pasta -->
+  <div class="modal" id="modalCriarPasta">
+    <div class="modal-content">
+      <div class="modal-header">📂 <span id="tituloCriarPasta">Criar Nova Pasta</span></div>
+      <label class="modal-label">Nome da Pasta:</label>
+      <input type="text" class="modal-input" id="inputNomePasta" placeholder="Ex: Legislação">
+      <button class="modal-btn modal-btn-primary" onclick="confirmarCriarPasta()">✅ Salvar</button>
+      <button class="modal-btn modal-btn-secondary" onclick="fecharModal('modalCriarPasta')">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Modal Adicionar Documento -->
+  <div class="modal" id="modalAdicionarDocumento">
+    <div class="modal-content">
+      <div class="modal-header">📄 <span id="tituloAdicionarDoc">Adicionar Documento</span></div>
+      <label class="modal-label">Nome do Documento:</label>
+      <input type="text" class="modal-input" id="inputNomeDocumento" placeholder="Ex: Decreto 12345/2023">
+      <label class="modal-label">Link (URL):</label>
+      <input type="text" class="modal-input" id="inputLinkDocumento" placeholder="https://exemplo.com/documento.pdf">
+      <p style="margin-top:8px;color:#6c757d;font-size:0.8em;">💡 Cole a URL completa do documento</p>
+      <button class="modal-btn modal-btn-primary" onclick="confirmarAdicionarDocumento()">✅ Salvar</button>
+      <button class="modal-btn modal-btn-secondary" onclick="fecharModal('modalAdicionarDocumento')">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Modal Escolher Tipo de Item -->
+  <div class="modal" id="modalEscolherTipoItem">
+    <div class="modal-content">
+      <div class="modal-header">➕ Adicionar Item</div>
+      <p style="margin-bottom:18px;">Escolha o que deseja adicionar:</p>
+      <button class="modal-btn modal-btn-primary" onclick="escolherTipoItem('pasta')" style="width:100%;margin-bottom:10px;">📂 Nova Subpasta</button>
+      <button class="modal-btn modal-btn-primary" onclick="escolherTipoItem('documento')" style="width:100%;margin-bottom:10px;">📄 Novo Documento</button>
+      <button class="modal-btn modal-btn-secondary" onclick="fecharModal('modalEscolherTipoItem')">Cancelar</button>
+    </div>
+  </div>
+
 
   <!-- TELA PRINCIPAL -->
   <div class="tela active" id="telaPrincipal"> 
@@ -4716,6 +4961,26 @@
   </div>
 
   <!-- ============================================== -->
+  <!-- TELA DOCUMENTOS -->
+  <!-- ============================================== -->
+  <div class="tela" id="telaDocumentos">
+    <div class="documentos-container">
+      <div class="documentos-header">
+        <div class="documentos-titulo">📁 DOCUMENTOS</div>
+        <p style="color: #6c757d; font-size: 0.95em;">Gestão de Documentos e Legislação</p>
+      </div>
+
+      <button class="btn-criar-pasta-raiz" onclick="abrirModalCriarPasta()">➕ Criar Nova Pasta</button>
+
+      <div class="documentos-lista" id="documentosLista">
+        <div class="mensagem-vazio-docs">
+          📭 Nenhum documento cadastrado
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
   <!-- JAVASCRIPT -->
   <!-- ============================================== -->
   <script>
@@ -4813,6 +5078,9 @@
       } else if(tela === 'analises') {
         document.getElementById('telaAnalises').classList.add('active');
         gerarAnalises();
+      } else if(tela === 'documentos') {
+        document.getElementById('telaDocumentos').classList.add('active');
+        renderizarDocumentos();
       }
       toggleMenu();
     }
@@ -6069,7 +6337,8 @@ colapsarTudo();
         },
         presidencia: extrairPresidencia(),
         grupos: extrairGrupos(),
-        camaras: extrairCamaras()
+        camaras: extrairCamaras(),
+        documentos: salvarEstruturaDocumentos()
       };
       
       const json = JSON.stringify(dados, null, 2);
@@ -6225,6 +6494,7 @@ colapsarTudo();
       reader.onload = function(e) {
         try {
           const dados = JSON.parse(e.target.result);
+          carregarEstruturaDocumentos(dados);
           alert('✅ JSON carregado!\n\n⚠️ ATENÇÃO: Esta funcionalidade ainda está em desenvolvimento.');
           console.log('Dados carregados:', dados);
         } catch(err) {
@@ -6788,6 +7058,387 @@ function gerarHTMLAtividades() {
       
       console.log('✅ Sistema pronto para uso!');
     });
+
+    // ============================================
+    // SISTEMA DE DOCUMENTOS
+    // ============================================
+    let documentosData = {
+      estrutura: []
+    };
+    let pastaAtualEdicao = null;
+    let itemAtualEdicao = null;
+    let pastaParenteAtual = null;
+
+    // Carregar documentos iniciais (estrutura exemplo)
+    function carregarDocumentosIniciais() {
+      documentosData.estrutura = [
+        {
+          id: 'pasta-1',
+          tipo: 'pasta',
+          nome: 'Legislação',
+          ordem: 1,
+          filhos: [
+            {
+              id: 'doc-1',
+              tipo: 'documento',
+              nome: 'Decreto de Criação da APA',
+              link: 'https://example.com/decreto.pdf',
+              ordem: 1
+            }
+          ]
+        }
+      ];
+    }
+
+    // Renderizar árvore de documentos
+    function renderizarDocumentos() {
+      const container = document.getElementById('documentosLista');
+      
+      if(!documentosData.estrutura || documentosData.estrutura.length === 0) {
+        container.innerHTML = '<div class="mensagem-vazio-docs">📭 Nenhum documento cadastrado</div>';
+        return;
+      }
+      
+      container.innerHTML = '';
+      documentosData.estrutura.forEach(item => {
+        container.appendChild(criarElementoItem(item, null));
+      });
+    }
+
+    // Criar elemento visual para pasta ou documento
+    function criarElementoItem(item, pastaParenteId) {
+      if(item.tipo === 'pasta') {
+        return criarElementoPasta(item, pastaParenteId);
+      } else {
+        return criarElementoDocumento(item, pastaParenteId);
+      }
+    }
+
+    // Criar elemento de pasta
+    function criarElementoPasta(pasta, pastaParenteId) {
+      const pastaDiv = document.createElement('div');
+      pastaDiv.className = 'pasta-item';
+      pastaDiv.dataset.id = pasta.id;
+      pastaDiv.dataset.tipo = 'pasta';
+      
+      // Header da pasta
+      const headerDiv = document.createElement('div');
+      headerDiv.className = 'pasta-header';
+      headerDiv.onclick = () => togglePasta(pasta.id);
+      
+      const seta = document.createElement('span');
+      seta.className = 'pasta-seta';
+      seta.textContent = '▶';
+      
+      const nome = document.createElement('span');
+      nome.className = 'pasta-nome';
+      nome.textContent = '📂 ' + pasta.nome;
+      
+      const acoes = document.createElement('div');
+      acoes.className = 'pasta-acoes';
+      acoes.innerHTML = `
+        <button class="btn-doc-action btn-add-item" onclick="event.stopPropagation(); abrirModalAdicionarItem('${pasta.id}')">➕ Adicionar</button>
+        <button class="btn-doc-action btn-editar-doc" onclick="event.stopPropagation(); editarPasta('${pasta.id}')">✏️</button>
+        <button class="btn-doc-action btn-remover-doc" onclick="event.stopPropagation(); removerItem('${pasta.id}')">🗑️</button>
+      `;
+      
+      headerDiv.appendChild(seta);
+      headerDiv.appendChild(nome);
+      headerDiv.appendChild(acoes);
+      
+      // Conteúdo da pasta
+      const conteudoDiv = document.createElement('div');
+      conteudoDiv.className = 'pasta-conteudo';
+      conteudoDiv.dataset.id = pasta.id;
+      
+      if(pasta.filhos && pasta.filhos.length > 0) {
+        pasta.filhos.forEach(filho => {
+          conteudoDiv.appendChild(criarElementoItem(filho, pasta.id));
+        });
+      }
+      
+      pastaDiv.appendChild(headerDiv);
+      pastaDiv.appendChild(conteudoDiv);
+      
+      return pastaDiv;
+    }
+
+    // Criar elemento de documento
+    function criarElementoDocumento(doc, pastaParenteId) {
+      const docDiv = document.createElement('div');
+      docDiv.className = 'documento-item';
+      docDiv.dataset.id = doc.id;
+      docDiv.dataset.tipo = 'documento';
+      docDiv.onclick = () => abrirDocumento(doc.link);
+      
+      const icone = document.createElement('span');
+      icone.className = 'documento-icone';
+      icone.textContent = '📄';
+      
+      const nome = document.createElement('span');
+      nome.className = 'documento-nome';
+      nome.textContent = doc.nome;
+      
+      const acoes = document.createElement('div');
+      acoes.className = 'documento-acoes';
+      acoes.innerHTML = `
+        <button class="btn-doc-action btn-editar-doc" onclick="event.stopPropagation(); editarDocumento('${doc.id}', '${pastaParenteId || ''}')">✏️</button>
+        <button class="btn-doc-action btn-remover-doc" onclick="event.stopPropagation(); removerItem('${doc.id}', '${pastaParenteId || ''}')">🗑️</button>
+      `;
+      
+      docDiv.appendChild(icone);
+      docDiv.appendChild(nome);
+      docDiv.appendChild(acoes);
+      
+      return docDiv;
+    }
+
+    // Toggle pasta (expandir/colapsar)
+    function togglePasta(pastaId) {
+      const pasta = document.querySelector(`.pasta-item[data-id="${pastaId}"]`);
+      if(!pasta) return;
+      
+      const header = pasta.querySelector('.pasta-header');
+      const conteudo = pasta.querySelector('.pasta-conteudo');
+      
+      header.classList.toggle('active');
+      conteudo.classList.toggle('active');
+    }
+
+    // Abrir documento em nova aba
+    function abrirDocumento(link) {
+      if(!link) return;
+      window.open(link, '_blank', 'noopener,noreferrer');
+    }
+
+    // Abrir modal para criar pasta
+    function abrirModalCriarPasta(pastaParenteId = null) {
+      if(!modoEdicao) {
+        alert('⚠️ Ative o modo de edição primeiro!');
+        return;
+      }
+      
+      pastaAtualEdicao = null;
+      pastaParenteAtual = pastaParenteId;
+      document.getElementById('tituloCriarPasta').textContent = 'Criar Nova Pasta';
+      document.getElementById('inputNomePasta').value = '';
+      document.getElementById('modalCriarPasta').classList.add('active');
+    }
+
+    // Editar pasta
+    function editarPasta(pastaId) {
+      if(!modoEdicao) return;
+      
+      const pasta = encontrarItemPorId(documentosData.estrutura, pastaId);
+      if(!pasta) return;
+      
+      pastaAtualEdicao = pasta;
+      document.getElementById('tituloCriarPasta').textContent = 'Editar Pasta';
+      document.getElementById('inputNomePasta').value = pasta.nome;
+      document.getElementById('modalCriarPasta').classList.add('active');
+    }
+
+    // Confirmar criar/editar pasta
+    function confirmarCriarPasta() {
+      const nome = document.getElementById('inputNomePasta').value.trim();
+      
+      if(!nome) {
+        alert('⚠️ Digite um nome para a pasta!');
+        return;
+      }
+      
+      if(pastaAtualEdicao) {
+        // Editando pasta existente
+        pastaAtualEdicao.nome = nome;
+        alert('✅ Pasta atualizada!');
+      } else {
+        // Criando nova pasta
+        const novaPasta = {
+          id: 'pasta-' + Date.now(),
+          tipo: 'pasta',
+          nome: nome,
+          ordem: 999,
+          filhos: []
+        };
+        
+        if(pastaParenteAtual) {
+          // Adicionar como subpasta
+          const pastaParente = encontrarItemPorId(documentosData.estrutura, pastaParenteAtual);
+          if(pastaParente) {
+            pastaParente.filhos.push(novaPasta);
+          }
+        } else {
+          // Adicionar na raiz
+          documentosData.estrutura.push(novaPasta);
+        }
+        
+        alert('✅ Pasta criada!');
+      }
+      
+      fecharModal('modalCriarPasta');
+      renderizarDocumentos();
+    }
+
+    // Abrir modal para adicionar item (pasta ou documento)
+    function abrirModalAdicionarItem(pastaId) {
+      if(!modoEdicao) return;
+      
+      pastaParenteAtual = pastaId;
+      document.getElementById('modalEscolherTipoItem').classList.add('active');
+    }
+
+    // Escolher tipo de item a adicionar
+    function escolherTipoItem(tipo) {
+      fecharModal('modalEscolherTipoItem');
+      
+      if(tipo === 'pasta') {
+        abrirModalCriarPasta(pastaParenteAtual);
+      } else if(tipo === 'documento') {
+        abrirModalAdicionarDocumento(pastaParenteAtual);
+      }
+    }
+
+    // Abrir modal para adicionar documento
+    function abrirModalAdicionarDocumento(pastaId) {
+      if(!modoEdicao) {
+        alert('⚠️ Ative o modo de edição primeiro!');
+        return;
+      }
+      
+      itemAtualEdicao = null;
+      pastaParenteAtual = pastaId;
+      document.getElementById('tituloAdicionarDoc').textContent = 'Adicionar Documento';
+      document.getElementById('inputNomeDocumento').value = '';
+      document.getElementById('inputLinkDocumento').value = '';
+      document.getElementById('modalAdicionarDocumento').classList.add('active');
+    }
+
+    // Editar documento
+    function editarDocumento(docId, pastaParenteId) {
+      if(!modoEdicao) return;
+      
+      const doc = encontrarItemPorId(documentosData.estrutura, docId);
+      if(!doc) return;
+      
+      itemAtualEdicao = doc;
+      pastaParenteAtual = pastaParenteId;
+      document.getElementById('tituloAdicionarDoc').textContent = 'Editar Documento';
+      document.getElementById('inputNomeDocumento').value = doc.nome;
+      document.getElementById('inputLinkDocumento').value = doc.link;
+      document.getElementById('modalAdicionarDocumento').classList.add('active');
+    }
+
+    // Confirmar adicionar/editar documento
+    function confirmarAdicionarDocumento() {
+      const nome = document.getElementById('inputNomeDocumento').value.trim();
+      const link = document.getElementById('inputLinkDocumento').value.trim();
+      
+      if(!nome) {
+        alert('⚠️ Digite um nome para o documento!');
+        return;
+      }
+      
+      if(!link) {
+        alert('⚠️ Digite a URL do documento!');
+        return;
+      }
+      
+      // Validar URL básica
+      if(!link.startsWith('http://') && !link.startsWith('https://')) {
+        alert('⚠️ URL inválida! Deve começar com http:// ou https://');
+        return;
+      }
+      
+      if(itemAtualEdicao) {
+        // Editando documento existente
+        itemAtualEdicao.nome = nome;
+        itemAtualEdicao.link = link;
+        alert('✅ Documento atualizado!');
+      } else {
+        // Criando novo documento
+        const novoDoc = {
+          id: 'doc-' + Date.now(),
+          tipo: 'documento',
+          nome: nome,
+          link: link,
+          ordem: 999
+        };
+        
+        if(pastaParenteAtual) {
+          // Adicionar em pasta específica
+          const pastaParente = encontrarItemPorId(documentosData.estrutura, pastaParenteAtual);
+          if(pastaParente) {
+            pastaParente.filhos.push(novoDoc);
+          }
+        } else {
+          // Adicionar na raiz
+          documentosData.estrutura.push(novoDoc);
+        }
+        
+        alert('✅ Documento criado!');
+      }
+      
+      fecharModal('modalAdicionarDocumento');
+      renderizarDocumentos();
+    }
+
+    // Remover item (pasta ou documento)
+    function removerItem(itemId, pastaParenteId) {
+      if(!modoEdicao) return;
+      
+      const item = encontrarItemPorId(documentosData.estrutura, itemId);
+      if(!item) return;
+      
+      let mensagem = '❓ Remover este ';
+      mensagem += item.tipo === 'pasta' ? 'pasta' : 'documento';
+      mensagem += '?';
+      
+      if(item.tipo === 'pasta' && item.filhos && item.filhos.length > 0) {
+        mensagem = '⚠️ Esta pasta contém ' + item.filhos.length + ' item(ns).\n\nDeseja realmente remover?';
+      }
+      
+      if(!confirm(mensagem)) return;
+      
+      if(pastaParenteId) {
+        // Remover de pasta específica
+        const pastaParente = encontrarItemPorId(documentosData.estrutura, pastaParenteId);
+        if(pastaParente) {
+          pastaParente.filhos = pastaParente.filhos.filter(f => f.id !== itemId);
+        }
+      } else {
+        // Remover da raiz
+        documentosData.estrutura = documentosData.estrutura.filter(f => f.id !== itemId);
+      }
+      
+      alert('✅ Item removido!');
+      renderizarDocumentos();
+    }
+
+    // Encontrar item por ID (busca recursiva)
+    function encontrarItemPorId(estrutura, id) {
+      for(let item of estrutura) {
+        if(item.id === id) return item;
+        
+        if(item.filhos && item.filhos.length > 0) {
+          const encontrado = encontrarItemPorId(item.filhos, id);
+          if(encontrado) return encontrado;
+        }
+      }
+      return null;
+    }
+
+    // Salvar estrutura de documentos no JSON
+    function salvarEstruturaDocumentos() {
+      return documentosData;
+    }
+
+    // Carregar estrutura de documentos do JSON
+    function carregarEstruturaDocumentos(dados) {
+      if(dados && dados.documentos) {
+        documentosData = dados.documentos;
+        renderizarDocumentos();
+      }
+    }
 
   </script>
 
