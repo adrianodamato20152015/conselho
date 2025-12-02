@@ -3470,7 +3470,12 @@ function abortarReuniaoForcado() {
             novoRes.className = 'gt-resultado';
             novoRes.textContent = `📌 ${resultado}`;
             const refElement = elementoGTAtual.querySelector('.gt-componentes') || elementoGTAtual.querySelector('.gt-objetivo');
-            refElement.after(novoRes);
+            if(refElement) {
+              refElement.after(novoRes);
+            } else {
+              // Fallback: adicionar ao final do GT se não encontrar elemento de referência
+              elementoGTAtual.appendChild(novoRes);
+            }
           }
         } else {
           // Se resultado foi removido, remover elemento
