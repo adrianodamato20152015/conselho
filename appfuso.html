@@ -5003,6 +5003,7 @@
 
     /**
      * Converte data ISO (YYYY-MM-DD) para data local sem alteração de fuso
+     * Útil para operações que necessitam manter o formato ISO mas garantir timezone local
      * @param {string} dataISO - Data no formato YYYY-MM-DD
      * @returns {string} Data no formato YYYY-MM-DD (local)
      */
@@ -5031,6 +5032,7 @@
 
     /**
      * Converte data DD/MM/YYYY para ISO (YYYY-MM-DD)
+     * Útil para entrada de usuário no formato brasileiro que precisa ser armazenada
      * @param {string} dataBR - Data no formato DD/MM/YYYY
      * @returns {string} Data no formato YYYY-MM-DD
      */
