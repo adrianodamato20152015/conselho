@@ -2088,7 +2088,12 @@ function confirmarCriarCamara() {
       if(!grupo) return;
       
       const numSetores = grupo.querySelectorAll('.setor').length;
-      const numCadeiras = grupo.querySelectorAll('.cadeira').length;
+      let numCadeiras = grupo.querySelectorAll('.cadeira').length;
+      
+      // Se for poder público, adicionar 1 para incluir o Presidente (Cadeira 1)
+      if (grupoId === 'poder-publico') {
+        numCadeiras += 1; // Presidente conta como Cadeira 1
+      }
       
       const contadorSetores = grupo.querySelector('.contador-setores');
       const contadorCadeiras = grupo.querySelector('.contador-cadeiras-total');
@@ -3033,8 +3038,19 @@ function abortarReuniaoForcado() {
         return;
       }
       
+      const grupo = setor.closest('.grupo');
+      const grupoId = grupo ? grupo.id : '';
+      const isPoderPublico = grupoId === 'poder-publico';
+      
       const cadeiraExistentes = setor.querySelectorAll('.cadeira');
-      const numCadeiraAtual = cadeiraExistentes.length + 1;
+      
+      // Se for poder público, começar da Cadeira 2 (Cadeira 1 = Presidente)
+      let numCadeiraAtual;
+      if (isPoderPublico) {
+        numCadeiraAtual = cadeiraExistentes.length + 2;
+      } else {
+        numCadeiraAtual = cadeiraExistentes.length + 1;
+      }
       
       const numeroCadeira = prompt(
         `📝 Digite o número/nome da nova cadeira:\n\n` +
@@ -5874,6 +5890,23 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
     // SALVAR HTML
     // ============================================
     function salvarHTML() {
+        // Primeiro, embute os dados dos documentos no HTML
+        let scriptEmbarcado = document.getElementById('dados-documentos-embarcados');
+        if (!scriptEmbarcado) {
+            scriptEmbarcado = document.createElement('script');
+            scriptEmbarcado.type = 'application/json';
+            scriptEmbarcado.id = 'dados-documentos-embarcados';
+            document.body.appendChild(scriptEmbarcado);
+        }
+        
+        // Serializa os dados dos documentos
+        const dadosParaEmbarcar = {
+            documentos: salvarEstruturaDocumentos()
+        };
+        
+        scriptEmbarcado.textContent = JSON.stringify(dadosParaEmbarcar, null, 2);
+        
+        // Agora salva o HTML completo com os dados embarcados
         const htmlContent = document.documentElement.outerHTML;
         
         const blob = new Blob([htmlContent], { type: 'text/html' });
@@ -5890,7 +5923,8 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
               '\n• Publicar este arquivo na web' +
               '\n• Continuar editando normalmente' +
               '\n• Carregar JSON posteriormente para atualizar os dados' +
-              '\n• Todas as funções de edição permanecem disponíveis');
+              '\n• Todas as funções de edição permanecem disponíveis' +
+              '\n• Os documentos foram salvos e serão restaurados automaticamente');
     }
 
     function carregarJSONExemplo() {
@@ -6037,6 +6071,9 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       if (palavraSecreta) {
         palavraSecreta.addEventListener('click', resetarSistemaCompleto);
       }
+      
+      // Carregar documentos embarcados (se houver)
+      carregarDocumentosEmbarcados();
       
       console.log('✅ Sistema de Gestão de Conselho Consultivo v2.3 - COMPLETO - Carregado com sucesso!');
     });
@@ -6414,6 +6451,23 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       }
     }
 
+    function carregarDocumentosEmbarcados() {
+      // Tenta carregar dados embarcados do script no HTML
+      const scriptEmbarcado = document.getElementById('dados-documentos-embarcados');
+      if (scriptEmbarcado && scriptEmbarcado.textContent) {
+        try {
+          const dados = JSON.parse(scriptEmbarcado.textContent);
+          if (dados && dados.documentos && dados.documentos.estrutura && dados.documentos.estrutura.length > 0) {
+            console.log('📄 Carregando documentos embarcados...', dados.documentos);
+            documentosData = dados.documentos;
+            // Não renderizar aqui, será feito quando o usuário abrir a tela de documentos
+          }
+        } catch (e) {
+          console.log('ℹ️ Nenhum dado de documento embarcado encontrado ou formato inválido');
+        }
+      }
+    }
+
     // ==========================================
     // DRAG & DROP PARA DOCUMENTOS
     // ==========================================
@@ -6638,8 +6692,14 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
   
   </script>
 
-    
-
+<!-- Script para dados embarcados de documentos (será preenchido ao salvar HTML) -->
+<script type="application/json" id="dados-documentos-embarcados">
+{
+  "documentos": {
+    "estrutura": []
+  }
+}
+</script>
 
 </body>
 </html>
