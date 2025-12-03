@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sistema de Gestão de Conselho Consultivo</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
@@ -877,6 +878,188 @@
     
     .btn-reuniao-fixo:hover {
       transform: translateY(-3px);
+    }
+    
+    /* CONFIRMAÇÕES DE PRESENÇA */
+    .confirmacoes-estatisticas {
+      display: flex;
+      gap: 15px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .stat-card {
+      background: white;
+      border-radius: 10px;
+      padding: 15px 20px;
+      text-align: center;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      min-width: 120px;
+      transition: all 0.3s;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .stat-confirmado { border-left: 4px solid #51cf66; }
+    .stat-justificado { border-left: 4px solid #ffd43b; }
+    .stat-nao-vai { border-left: 4px solid #ff6b6b; }
+    .stat-pendente { border-left: 4px solid #dee2e6; }
+    
+    .stat-emoji {
+      font-size: 2em;
+      margin-bottom: 8px;
+    }
+    
+    .stat-valor {
+      font-size: 1.8em;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+    
+    .stat-label {
+      font-size: 0.85em;
+      color: #6c757d;
+      margin-top: 5px;
+    }
+    
+    .confirmacoes-resumo {
+      text-align: center;
+      font-size: 1.1em;
+      color: #2c3e50;
+      font-weight: bold;
+      margin: 15px 0;
+      padding: 12px;
+      background: rgba(255,255,255,0.7);
+      border-radius: 8px;
+    }
+    
+    .confirmacoes-filtros {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .filtro-btn {
+      padding: 10px 20px;
+      border: 2px solid #dee2e6;
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9em;
+      font-weight: bold;
+      color: #495057;
+      transition: all 0.3s;
+    }
+    
+    .filtro-btn:hover {
+      background: #f8f9fa;
+      border-color: #adb5bd;
+    }
+    
+    .filtro-btn.active {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
+    }
+    
+    .confirmacao-item {
+      padding: 15px;
+      border-bottom: 1px solid #e9ecef;
+      background: white;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    
+    .confirmacao-item:hover {
+      background: #f8f9fa;
+    }
+    
+    .confirmacao-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 10px;
+    }
+    
+    .confirmacao-status-bolinhas {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .confirmacao-info {
+      flex: 1;
+    }
+    
+    .confirmacao-nome {
+      font-size: 1.1em;
+      font-weight: bold;
+      color: #2c3e50;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .confirmacao-entidade {
+      font-size: 0.9em;
+      color: #6c757d;
+      margin-top: 3px;
+    }
+    
+    .confirmacao-contatos {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-top: 8px;
+      font-size: 0.85em;
+      color: #495057;
+    }
+    
+    .confirmacao-contato-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .confirmacao-observacoes {
+      margin-top: 12px;
+    }
+    
+    .confirmacao-obs-label {
+      font-size: 0.85em;
+      color: #495057;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .confirmacao-obs-textarea {
+      width: 100%;
+      min-height: 70px;
+      padding: 8px;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      background: #f8f9fa;
+      font-family: inherit;
+      font-size: 0.85em;
+      resize: vertical;
+      transition: all 0.3s;
+    }
+    
+    .confirmacao-obs-textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      background: white;
+    }
+    
+    .confirmacao-obs-textarea::placeholder {
+      color: #adb5bd;
     }
     
     /* ANÁLISES */
@@ -1881,9 +2064,72 @@
       </div>
       
       <div class="botoes-reuniao-fixo">
+        <button class="btn-reuniao-fixo" style="background: #f59e0b;" onclick="abrirPresencasConfirmadas()">📋 Presenças Confirmadas</button>
         <button class="btn-reuniao-fixo btn-finalizar-reuniao" onclick="finalizarReuniao()">✅ Finalizar Reunião</button>
         <button class="btn-reuniao-fixo btn-abortar-reuniao-fixo" onclick="abortarReuniao()">❌ Abortar Reunião</button>
         <button class="btn-reuniao-fixo" style="background: #667eea;" onclick="imprimirListaPresenca()">🖨️ Imprimir Lista</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TELA PRESENÇAS CONFIRMADAS -->
+  <div class="tela" id="telaConfirmacoes">
+    <div class="tela-presenca">
+      <div class="header">
+        <h1>📋 Presenças Confirmadas</h1>
+        <div class="reuniao-info">
+          <span>Reunião:</span> 
+          <span id="dataReuniaoConfirmacoes">--/--/----</span> | 
+          <span>Local:</span> 
+          <span id="localReuniaoConfirmacoes">---</span>
+        </div>
+      </div>
+      
+      <!-- Estatísticas -->
+      <div class="confirmacoes-estatisticas">
+        <div class="stat-card stat-confirmado">
+          <div class="stat-emoji">✅</div>
+          <div class="stat-valor" id="statConfirmados">0</div>
+          <div class="stat-label">Confirmados</div>
+        </div>
+        <div class="stat-card stat-justificado">
+          <div class="stat-emoji">⚠️</div>
+          <div class="stat-valor" id="statJustificados">0</div>
+          <div class="stat-label">Justificaram</div>
+        </div>
+        <div class="stat-card stat-nao-vai">
+          <div class="stat-emoji">❌</div>
+          <div class="stat-valor" id="statNaoVao">0</div>
+          <div class="stat-label">Não vão</div>
+        </div>
+        <div class="stat-card stat-pendente">
+          <div class="stat-emoji">⏳</div>
+          <div class="stat-valor" id="statPendentes">0</div>
+          <div class="stat-label">Pendentes</div>
+        </div>
+      </div>
+      
+      <div class="confirmacoes-resumo" id="confirmacoes-resumo">
+        Total: <span id="totalConfirmacoes">0 de 0 confirmados (0%)</span>
+      </div>
+      
+      <!-- Filtros -->
+      <div class="confirmacoes-filtros">
+        <button class="filtro-btn active" data-filtro="todos" onclick="filtrarConfirmacoes('todos')">Todos</button>
+        <button class="filtro-btn" data-filtro="confirmado" onclick="filtrarConfirmacoes('confirmado')">Confirmados</button>
+        <button class="filtro-btn" data-filtro="justificado" onclick="filtrarConfirmacoes('justificado')">Justificaram</button>
+        <button class="filtro-btn" data-filtro="nao_vai" onclick="filtrarConfirmacoes('nao_vai')">Não vão</button>
+        <button class="filtro-btn" data-filtro="pendente" onclick="filtrarConfirmacoes('pendente')">Pendentes</button>
+      </div>
+      
+      <div class="lista-presenca" id="listaConfirmacoes">
+        <!-- Lista de membros será preenchida via JavaScript -->
+      </div>
+      
+      <div class="botoes-reuniao-fixo">
+        <button class="btn-reuniao-fixo" style="background: #667eea;" onclick="gerarPDFConfirmacoes()">📄 Gerar PDF</button>
+        <button class="btn-reuniao-fixo" style="background: #6c757d;" onclick="voltarParaPresenca()">↩️ Voltar</button>
+        <button class="btn-reuniao-fixo btn-abortar-reuniao-fixo" onclick="abortarReuniao()">❌ Abortar Reunião</button>
       </div>
     </div>
   </div>
@@ -1962,6 +2208,9 @@
     let reuniaoAtual = null;
     let bolinhaEditando = null;
     let emojiContext = null;
+    let confirmacoesData = {}; // Dados de confirmações de presença
+    let filtroAtualConfirmacoes = 'todos'; // Filtro ativo
+    let debounceTimers = {}; // Timers para debounce de observações
 
     // ============================================
     // FUNÇÕES AUXILIARES PARA MANIPULAÇÃO DE DATAS SEM TIMEZONE
@@ -2890,6 +3139,14 @@ function adicionarBolinhaPresenca(membro, presenca) {
         // 1. LIMPAR PRESENÇAS TEMPORÁRIAS DO LOCALSTORAGE
         localStorage.removeItem('presencasReuniao');
         
+        // LIMPAR CONFIRMAÇÕES
+        if (reuniaoAtual && reuniaoAtual.timestamp) {
+          const chaveConfirmacoes = `confirmacoes_${reuniaoAtual.timestamp}`;
+          localStorage.removeItem(chaveConfirmacoes);
+        }
+        confirmacoesData = {};
+        filtroAtualConfirmacoes = 'todos';
+        
         // 2. LIMPAR VISUALMENTE TODAS AS BOLINHAS NA TELA
         document.querySelectorAll('#listaPresenca .bolinha-grande').forEach(bolinha => {
             bolinha.classList.remove('verde', 'amarelo', 'vermelho');
@@ -2958,6 +3215,435 @@ function abortarReuniaoForcado() {
     
     alert('✅ Reunião abortada forçadamente!\n\nTodos os dados temporários foram limpos.');
 }
+
+    // ============================================
+    // SISTEMA DE PRESENÇAS CONFIRMADAS
+    // ============================================
+
+    function abrirPresencasConfirmadas() {
+      if (!reuniaoAtual) {
+        alert('⚠️ Nenhuma reunião ativa!');
+        return;
+      }
+
+      // Mudar para tela de confirmações
+      document.querySelectorAll('.tela').forEach(t => t.classList.remove('active'));
+      document.getElementById('telaConfirmacoes').classList.add('active');
+
+      // Atualizar informações da reunião
+      document.getElementById('dataReuniaoConfirmacoes').textContent = reuniaoAtual.dataFormatada;
+      document.getElementById('localReuniaoConfirmacoes').textContent = reuniaoAtual.local;
+
+      // Carregar lista de confirmações
+      carregarListaConfirmacoes();
+
+      // Carregar dados salvos do localStorage
+      carregarConfirmacoesLocalStorage();
+
+      // Atualizar estatísticas
+      atualizarEstatisticasConfirmacoes();
+    }
+
+    function voltarParaPresenca() {
+      document.querySelectorAll('.tela').forEach(t => t.classList.remove('active'));
+      document.getElementById('telaPresenca').classList.add('active');
+    }
+
+    function carregarListaConfirmacoes() {
+      const container = document.getElementById('listaConfirmacoes');
+      container.innerHTML = '';
+
+      const cadeiras = new Map();
+
+      function coletarCadeiras(seletor, grupo) {
+        document.querySelectorAll(seletor).forEach(cadeira => {
+          const numeroCadeira = cadeira.querySelector('.numero-cadeira')?.textContent || '';
+          const setorEl = cadeira.closest('.setor');
+          const nomeSetor = setorEl?.querySelector('.titulo-setor .editable')?.textContent || '';
+
+          const cadeiraId = `cadeira-${grupo}-${nomeSetor.replace(/\s+/g, '-')}-${numeroCadeira.replace(/\s+/g, '-')}`;
+
+          const membrosCadeira = [];
+          cadeira.querySelectorAll('.membro-linha:not(.vazio)').forEach(membro => {
+            const nome = membro.querySelector('.nome-membro')?.textContent || '';
+            const entidade = membro.querySelector('.entidade-membro')?.textContent || '';
+            const municipio = membro.querySelector('.municipio-membro')?.textContent.replace('📍 ', '') || '';
+            const telefone = membro.dataset.telefone || '';
+            const email = membro.dataset.email || '';
+            const boneco = membro.querySelector('.bonequinho')?.textContent || '👤';
+            const tipo = membro.classList.contains('titular') ? 'Titular' : 'Suplente';
+
+            if(nome && nome.trim() !== '' && nome !== 'VAGA' && nome !== '-') {
+              membrosCadeira.push({
+                nome, entidade, municipio, telefone, email, boneco, tipo,
+                elemento: membro,
+                setorNome: nomeSetor
+              });
+            }
+          });
+
+          if (membrosCadeira.length > 0) {
+            cadeiras.set(cadeiraId, {
+              id: cadeiraId,
+              grupo: grupo,
+              nomeSetor: nomeSetor,
+              numeroCadeira: numeroCadeira,
+              membros: membrosCadeira
+            });
+          }
+        });
+      }
+
+      // Coletar da presidência
+      const presidenciaContainer = document.getElementById('presidenciaContainer');
+      if (presidenciaContainer) {
+        const membrosPresidencia = [];
+        presidenciaContainer.querySelectorAll('.membro-linha:not(.vazio)').forEach(membro => {
+          const nome = membro.querySelector('.nome-membro')?.textContent || '';
+          const entidade = membro.querySelector('.entidade-membro')?.textContent || '';
+          const municipio = membro.querySelector('.municipio-membro')?.textContent.replace('📍 ', '') || '';
+          const telefone = membro.dataset.telefone || '';
+          const email = membro.dataset.email || '';
+          const boneco = membro.querySelector('.bonequinho')?.textContent || '👤';
+          const tipo = 'Presidente';
+
+          if(nome && nome.trim() !== '' && nome !== 'VAGA' && nome !== '-') {
+            membrosPresidencia.push({
+              nome, entidade, municipio, telefone, email, boneco, tipo,
+              elemento: membro
+            });
+          }
+        });
+
+        if (membrosPresidencia.length > 0) {
+          cadeiras.set('presidencia', {
+            id: 'presidencia',
+            grupo: 'PRESIDÊNCIA',
+            nomeSetor: 'PRESIDÊNCIA',
+            numeroCadeira: 'PRESIDÊNCIA',
+            membros: membrosPresidencia
+          });
+        }
+      }
+
+      // Coletar cadeiras dos grupos
+      coletarCadeiras('#grupoPublico .cadeira', 'Poder Público');
+      coletarCadeiras('#grupoPrivado .cadeira', 'Sociedade Civil');
+
+      // Renderizar todos os membros
+      cadeiras.forEach(cadeira => {
+        cadeira.membros.forEach((membro, idx) => {
+          const membroId = `${cadeira.id}-${membro.tipo.toLowerCase().replace(/\s+/g, '_')}-${idx}`;
+          renderizarItemConfirmacao(membro, membroId, cadeira);
+        });
+      });
+
+      // Aplicar filtro atual
+      aplicarFiltroAtual();
+    }
+
+    function renderizarItemConfirmacao(membro, membroId, cadeira) {
+      const container = document.getElementById('listaConfirmacoes');
+
+      const item = document.createElement('div');
+      item.className = 'confirmacao-item';
+      item.dataset.membroId = membroId;
+      item.dataset.status = confirmacoesData[membroId]?.status || 'pendente';
+
+      const statusAtual = confirmacoesData[membroId]?.status || 'pendente';
+      const observacoesAtuais = confirmacoesData[membroId]?.observacoes || '';
+
+      item.innerHTML = `
+        <div class="confirmacao-header">
+          <div class="confirmacao-status-bolinhas">
+            <div class="bolinha-grande ${statusAtual === 'confirmado' ? 'verde' : ''} ${statusAtual === 'justificado' ? 'amarelo' : ''} ${statusAtual === 'nao_vai' ? 'vermelho' : ''}" 
+                 onclick="alternarStatusConfirmacao('${membroId}')"></div>
+          </div>
+          <div class="confirmacao-info">
+            <div class="confirmacao-nome">
+              <span>${membro.boneco}</span>
+              <span>${membro.nome}</span>
+            </div>
+            <div class="confirmacao-entidade">🏢 ${membro.entidade || '-'}</div>
+            <div class="confirmacao-contatos">
+              ${membro.municipio ? `<div class="confirmacao-contato-item">📍 ${membro.municipio}</div>` : ''}
+              ${membro.email ? `<div class="confirmacao-contato-item">📧 ${membro.email}</div>` : ''}
+              ${membro.telefone ? `<div class="confirmacao-contato-item">📱 ${membro.telefone}</div>` : ''}
+            </div>
+          </div>
+        </div>
+        <div class="confirmacao-observacoes">
+          <div class="confirmacao-obs-label">📝 Observações:</div>
+          <textarea class="confirmacao-obs-textarea" 
+                    placeholder="Ex: Ligou dia 03/12 confirmando presença..."
+                    oninput="salvarObservacaoDebounce('${membroId}', this.value)">${observacoesAtuais}</textarea>
+        </div>
+      `;
+
+      container.appendChild(item);
+    }
+
+    function alternarStatusConfirmacao(membroId) {
+      const item = document.querySelector(`[data-membro-id="${membroId}"]`);
+      if (!item) return;
+
+      const statusAtual = item.dataset.status;
+      let novoStatus = 'pendente';
+
+      // Ciclo: pendente → confirmado → justificado → nao_vai → pendente
+      switch (statusAtual) {
+        case 'pendente':
+          novoStatus = 'confirmado';
+          break;
+        case 'confirmado':
+          novoStatus = 'justificado';
+          break;
+        case 'justificado':
+          novoStatus = 'nao_vai';
+          break;
+        case 'nao_vai':
+          novoStatus = 'pendente';
+          break;
+      }
+
+      // Atualizar item
+      item.dataset.status = novoStatus;
+
+      // Atualizar bolinha
+      const bolinha = item.querySelector('.bolinha-grande');
+      bolinha.classList.remove('verde', 'amarelo', 'vermelho');
+      if (novoStatus === 'confirmado') bolinha.classList.add('verde');
+      else if (novoStatus === 'justificado') bolinha.classList.add('amarelo');
+      else if (novoStatus === 'nao_vai') bolinha.classList.add('vermelho');
+
+      // Salvar nos dados
+      if (!confirmacoesData[membroId]) {
+        confirmacoesData[membroId] = {};
+      }
+      confirmacoesData[membroId].status = novoStatus;
+      confirmacoesData[membroId].timestamp = new Date().toISOString();
+
+      // Salvar no localStorage
+      salvarConfirmacoesLocalStorage();
+
+      // Atualizar estatísticas
+      atualizarEstatisticasConfirmacoes();
+
+      // Aplicar filtro se necessário
+      aplicarFiltroAtual();
+    }
+
+    function salvarObservacaoDebounce(membroId, valor) {
+      // Limpar timer anterior se existir
+      if (debounceTimers[membroId]) {
+        clearTimeout(debounceTimers[membroId]);
+      }
+
+      // Criar novo timer
+      debounceTimers[membroId] = setTimeout(() => {
+        if (!confirmacoesData[membroId]) {
+          confirmacoesData[membroId] = { status: 'pendente' };
+        }
+        confirmacoesData[membroId].observacoes = valor;
+        confirmacoesData[membroId].timestamp = new Date().toISOString();
+
+        salvarConfirmacoesLocalStorage();
+      }, 500);
+    }
+
+    function atualizarEstatisticasConfirmacoes() {
+      const items = document.querySelectorAll('.confirmacao-item');
+      let confirmados = 0;
+      let justificados = 0;
+      let naoVao = 0;
+      let pendentes = 0;
+
+      items.forEach(item => {
+        const status = item.dataset.status;
+        switch (status) {
+          case 'confirmado': confirmados++; break;
+          case 'justificado': justificados++; break;
+          case 'nao_vai': naoVao++; break;
+          default: pendentes++; break;
+        }
+      });
+
+      const total = items.length;
+      const percentual = total > 0 ? Math.round((confirmados / total) * 100) : 0;
+
+      document.getElementById('statConfirmados').textContent = confirmados;
+      document.getElementById('statJustificados').textContent = justificados;
+      document.getElementById('statNaoVao').textContent = naoVao;
+      document.getElementById('statPendentes').textContent = pendentes;
+      document.getElementById('totalConfirmacoes').textContent = `${confirmados} de ${total} confirmados (${percentual}%)`;
+    }
+
+    function filtrarConfirmacoes(filtro) {
+      filtroAtualConfirmacoes = filtro;
+
+      // Atualizar botões
+      document.querySelectorAll('.filtro-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.filtro === filtro) {
+          btn.classList.add('active');
+        }
+      });
+
+      aplicarFiltroAtual();
+    }
+
+    function aplicarFiltroAtual() {
+      const items = document.querySelectorAll('.confirmacao-item');
+
+      items.forEach(item => {
+        const status = item.dataset.status;
+
+        if (filtroAtualConfirmacoes === 'todos') {
+          item.style.display = 'block';
+        } else {
+          item.style.display = (status === filtroAtualConfirmacoes) ? 'block' : 'none';
+        }
+      });
+    }
+
+    function salvarConfirmacoesLocalStorage() {
+      if (!reuniaoAtual) return;
+
+      const chave = `confirmacoes_${reuniaoAtual.timestamp}`;
+      localStorage.setItem(chave, JSON.stringify(confirmacoesData));
+    }
+
+    function carregarConfirmacoesLocalStorage() {
+      if (!reuniaoAtual) return;
+
+      const chave = `confirmacoes_${reuniaoAtual.timestamp}`;
+      const dados = localStorage.getItem(chave);
+
+      if (dados) {
+        confirmacoesData = JSON.parse(dados);
+
+        // Aplicar dados carregados
+        Object.keys(confirmacoesData).forEach(membroId => {
+          const item = document.querySelector(`[data-membro-id="${membroId}"]`);
+          if (item) {
+            const dados = confirmacoesData[membroId];
+            item.dataset.status = dados.status || 'pendente';
+
+            const bolinha = item.querySelector('.bolinha-grande');
+            bolinha.classList.remove('verde', 'amarelo', 'vermelho');
+            if (dados.status === 'confirmado') bolinha.classList.add('verde');
+            else if (dados.status === 'justificado') bolinha.classList.add('amarelo');
+            else if (dados.status === 'nao_vai') bolinha.classList.add('vermelho');
+
+            const textarea = item.querySelector('.confirmacao-obs-textarea');
+            if (textarea && dados.observacoes) {
+              textarea.value = dados.observacoes;
+            }
+          }
+        });
+
+        atualizarEstatisticasConfirmacoes();
+      }
+    }
+
+    function gerarPDFConfirmacoes() {
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        alert('⚠️ Biblioteca jsPDF não carregada. Verifique a conexão com a internet.');
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      // Cabeçalho
+      doc.setFontSize(18);
+      doc.setFont(undefined, 'bold');
+      doc.text('Lista de Confirmações de Presença', 105, 20, { align: 'center' });
+
+      // Subtítulo com informações da reunião
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Reunião: ${reuniaoAtual.dataFormatada} - ${reuniaoAtual.local}`, 105, 30, { align: 'center' });
+
+      // Estatísticas
+      const items = document.querySelectorAll('.confirmacao-item');
+      let confirmados = 0, justificados = 0, naoVao = 0, pendentes = 0;
+
+      items.forEach(item => {
+        const status = item.dataset.status;
+        switch (status) {
+          case 'confirmado': confirmados++; break;
+          case 'justificado': justificados++; break;
+          case 'nao_vai': naoVao++; break;
+          default: pendentes++; break;
+        }
+      });
+
+      doc.setFontSize(10);
+      doc.text(`Total: ${confirmados} Confirmados | ${justificados} Justificaram | ${naoVao} Não vão | ${pendentes} Pendentes`, 105, 38, { align: 'center' });
+
+      // Lista de membros
+      let y = 50;
+      doc.setFontSize(9);
+
+      items.forEach(item => {
+        const nome = item.querySelector('.confirmacao-nome').textContent.trim();
+        const entidade = item.querySelector('.confirmacao-entidade')?.textContent.replace('🏢 ', '') || '';
+        const contatos = Array.from(item.querySelectorAll('.confirmacao-contato-item')).map(c => c.textContent).join(' | ');
+        const observacoes = item.querySelector('.confirmacao-obs-textarea')?.value || '';
+        const status = item.dataset.status;
+
+        let statusTexto = '⏳ Pendente';
+        if (status === 'confirmado') statusTexto = '✅ Confirmado';
+        else if (status === 'justificado') statusTexto = '⚠️ Justificou';
+        else if (status === 'nao_vai') statusTexto = '❌ Não vai';
+
+        // Verificar se precisa de nova página
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+
+        doc.setFont(undefined, 'bold');
+        doc.text(nome, 10, y);
+        doc.setFont(undefined, 'normal');
+        y += 5;
+        doc.text(`${entidade}`, 10, y);
+        y += 5;
+        if (contatos) {
+          doc.text(contatos, 10, y);
+          y += 5;
+        }
+        doc.text(`Status: ${statusTexto}`, 10, y);
+        y += 5;
+
+        if (observacoes) {
+          const linhasObs = doc.splitTextToSize(`Obs: ${observacoes}`, 190);
+          linhasObs.forEach(linha => {
+            if (y > 270) {
+              doc.addPage();
+              y = 20;
+            }
+            doc.text(linha, 10, y);
+            y += 5;
+          });
+        }
+
+        y += 3; // Espaço entre membros
+      });
+
+      // Rodapé
+      const agora = new Date();
+      const dataHora = `${agora.toLocaleDateString('pt-BR')} às ${agora.toLocaleTimeString('pt-BR')}`;
+      doc.setFontSize(8);
+      doc.text(`Gerado em: ${dataHora}`, 105, 290, { align: 'center' });
+
+      // Salvar PDF
+      const nomeArquivo = `confirmacoes_${reuniaoAtual.data.replace(/-/g, '_')}.pdf`;
+      doc.save(nomeArquivo);
+
+      alert(`✅ PDF gerado: ${nomeArquivo}`);
+    }
 
     // ============================================
     // EDIÇÃO DE BOLINHAS NO MODO EDIÇÃO
@@ -5692,7 +6378,11 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
         presidencia: extrairPresidencia(),
         grupos: extrairGrupos(),
         camaras: extrairCamaras(),
-        documentos: salvarEstruturaDocumentos()
+        documentos: salvarEstruturaDocumentos(),
+        confirmacoes: reuniaoAtual ? {
+          reuniaoAtual: reuniaoAtual,
+          dados: confirmacoesData
+        } : null
       };
       
       // Gerar nome dinâmico do arquivo
@@ -6084,6 +6774,16 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
           
           atualizarContadorCamara(camaraEl);
         });
+      }
+      
+      // Carregar confirmações se existir
+      if (dados.confirmacoes) {
+        if (dados.confirmacoes.reuniaoAtual) {
+          reuniaoAtual = dados.confirmacoes.reuniaoAtual;
+        }
+        if (dados.confirmacoes.dados) {
+          confirmacoesData = dados.confirmacoes.dados;
+        }
       }
       
       configurarDragAndDrop();
