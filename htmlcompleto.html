@@ -1733,7 +1733,7 @@
           <div class="cadeira presidencia" style="background: white; border-radius: 8px;">
             <div class="cadeira-header">
               <span class="icone-cadeira">🪑</span>
-              <span class="numero-cadeira" title="Cadeira 1 do Poder Público">Presidente</span>
+              <span class="numero-cadeira">Presidente</span>
             </div>
             <div class="cadeira-membros-container" id="presidenciaContainer">
               <!-- Presidente será adicionado via JSON -->
@@ -2081,41 +2081,6 @@ function confirmarCriarCamara() {
     }
 
     // ============================================
-    // UTILITY: CHAIR NUMBER LABEL
-    // ============================================
-    /**
-     * Apply chair number label with special handling for public sector
-     * Chair 1 in public sector (poder-publico) should be labeled as "Presidente"
-     * @param {string} cadeiraNumero - The chair number/name (e.g., "Cadeira 1", "1", etc.)
-     * @param {Element} cadeiraElement - The chair DOM element
-     * @returns {string} - The formatted label
-     */
-    function applyCadeiraNumberLabel(cadeiraNumero, cadeiraElement) {
-      if (!cadeiraElement) return cadeiraNumero;
-      
-      // Check if this chair is in the poder-publico group
-      const isPoderPublico = cadeiraElement.closest('#poder-publico') !== null;
-      
-      if (!isPoderPublico) {
-        return cadeiraNumero;
-      }
-      
-      // Extract numeric value from chair number
-      const numericMatch = cadeiraNumero.match(/\d+/);
-      if (!numericMatch) return cadeiraNumero;
-      
-      const numero = parseInt(numericMatch[0], 10);
-      
-      // Chair 1 in public sector should be labeled as "Presidente"
-      if (numero === 1) {
-        return `Cadeira 1 - Presidente`;
-      }
-      
-      // For other chairs, ensure format is "Cadeira N"
-      return `Cadeira ${numero}`;
-    }
-
-    // ============================================
     // ATUALIZAR CONTADORES
     // ============================================
     function atualizarContadoresGrupo(grupoId) {
@@ -2123,22 +2088,7 @@ function confirmarCriarCamara() {
       if(!grupo) return;
       
       const numSetores = grupo.querySelectorAll('.setor').length;
-      let numCadeiras = grupo.querySelectorAll('.cadeira').length;
-      
-      // Para o setor público, incluir a Presidência como Cadeira 1
-      if(grupoId === 'poder-publico') {
-        const presidenciaContainer = document.getElementById('presidenciaContainer');
-        if(presidenciaContainer && presidenciaContainer.querySelectorAll('.membro-linha:not(.vazio)').length > 0) {
-          numCadeiras += 1; // Adicionar a Presidência como Cadeira 1
-        }
-      let numCadeiras;
-      
-      // Para poder público, incluir a presidência na contagem
-      if (grupoId === 'poder-publico') {
-        numCadeiras = contarCadeirasPoderPublico();
-      } else {
-        numCadeiras = grupo.querySelectorAll('.cadeira').length;
-      }
+      const numCadeiras = grupo.querySelectorAll('.cadeira').length;
       
       const contadorSetores = grupo.querySelector('.contador-setores');
       const contadorCadeiras = grupo.querySelector('.contador-cadeiras-total');
@@ -3083,47 +3033,36 @@ function abortarReuniaoForcado() {
         return;
       }
       
-      const grupo = setor.closest('.grupo');
-      const grupoId = grupo ? grupo.id : '';
-      
       const cadeiraExistentes = setor.querySelectorAll('.cadeira');
-      const indexCadeira = cadeiraExistentes.length;
-      
-      // Calcular número sugerido baseado na nova lógica
-      const numeroSugerido = getCadeiraNumberLabel(grupoId, indexCadeira);
+      const numCadeiraAtual = cadeiraExistentes.length + 1;
       
       const numeroCadeira = prompt(
         `📝 Digite o número/nome da nova cadeira:\n\n` +
-        `Cadeiras existentes: ${cadeiraExistentes.length}` +
-        (grupoId === 'poder-publico' ? '\n\n💡 Lembre-se: Cadeira 1 é a Presidência' : ''),
-        numeroSugerido
+        `Cadeiras existentes: ${cadeiraExistentes.length}`,
+        `Cadeira ${numCadeiraAtual}`
       );
       
       if(!numeroCadeira) return;
       
       const cadeira = document.createElement('div');
       cadeira.className = 'cadeira';
-      
-      const btnAddCadeiraSetor = setor.querySelector('.btn-add-cadeira');
-      const setorConteudo = setor.querySelector('.setor-conteudo');
-      setorConteudo.insertBefore(cadeira, btnAddCadeiraSetor);
-      
-      // Apply label formatting (will handle Chair 1 as President in public sector)
-      const formattedLabel = applyCadeiraNumberLabel(numeroCadeira, cadeira);
-      
       cadeira.innerHTML = `
         <div class="cadeira-header">
           <span class="icone-cadeira">🪑</span>
-          <span class="numero-cadeira">${formattedLabel}</span>
+          <span class="numero-cadeira">${numeroCadeira}</span>
           <button class="btn-remove" onclick="removerCadeira(this)">🗑️</button>
         </div>
         <div class="cadeira-membros-container"></div>
         <button class="btn-add-membro" onclick="abrirModalAdicionarMembro(this)">➕ Adicionar Membro</button>
       `;
       
+      const btnAddCadeiraSetor = setor.querySelector('.btn-add-cadeira');
+      const setorConteudo = setor.querySelector('.setor-conteudo');
+      setorConteudo.insertBefore(cadeira, btnAddCadeiraSetor);
+      
       atualizarContadorCadeiras(setor);
       
-      alert(`✅ "${formattedLabel}" criada!\n\n👥 Agora adicione membros.`);
+      alert(`✅ "${numeroCadeira}" criada!\n\n👥 Agora adicione membros.`);
     }
 
     function removerCadeira(btn) {
@@ -3248,11 +3187,6 @@ function abortarReuniaoForcado() {
 
       if(cadeiraAtualAdicionarMembro) {
         cadeiraAtualAdicionarMembro.appendChild(membro);
-        
-        // Atualizar contador do poder público se for presidência
-        if(cadeiraAtualAdicionarMembro.id === 'presidenciaContainer') {
-          atualizarContadoresGrupo('poder-publico');
-        }
       }
 
       configurarDragAndDrop();
@@ -3264,15 +3198,7 @@ function abortarReuniaoForcado() {
       if(!modoEdicao) return;
       
       if(confirm('❓ Remover este membro?')) {
-        const membro = btn.closest('.membro-linha');
-        const container = membro.parentElement;
-        membro.remove();
-        
-        // Atualizar contador do poder público se for presidência
-        if(container && container.id === 'presidenciaContainer') {
-          atualizarContadoresGrupo('poder-publico');
-        }
-        
+        btn.closest('.membro-linha').remove();
         alert('✅ Membro removido!');
       }
     }
@@ -5275,7 +5201,7 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       conteudo += `
         <div style="margin-bottom: 25px;">
           <h3 style="color: #495057; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #dee2e6;">
-            🏛️ PRESIDÊNCIA (Cadeira 1 - Poder Público)
+            🏛️ PRESIDÊNCIA
           </h3>
           <div class="card-grid">
       `;
@@ -5298,9 +5224,6 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
             <div class="card-telefone">📞 ${telefone}</div>
             <div style="margin-top: 8px;">
               <span class="card-tipo" style="background: #ff6b6b;">${tipo}</span>
-            </div>
-            <div style="font-size: 0.7em; color: #868e96; margin-top: 5px;">
-              Cadeira: 1 (Presidente)
             </div>
           </div>
         `;
@@ -5708,23 +5631,19 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
             setor.cadeiras.forEach(cadeira => {
               const cadeiraEl = document.createElement('div');
               cadeiraEl.className = 'cadeira';
-              
-              const setorConteudo = setorEl.querySelector('.setor-conteudo');
-              const btnAddCadeira = setorConteudo.querySelector('.btn-add-cadeira');
-              setorConteudo.insertBefore(cadeiraEl, btnAddCadeira);
-              
-              // Apply label formatting (will handle Chair 1 as President in public sector)
-              const formattedLabel = applyCadeiraNumberLabel(cadeira.numero, cadeiraEl);
-              
               cadeiraEl.innerHTML = `
                 <div class="cadeira-header">
                   <span class="icone-cadeira">🪑</span>
-                  <span class="numero-cadeira">${formattedLabel}</span>
+                  <span class="numero-cadeira">${cadeira.numero}</span>
                   <button class="btn-remove" onclick="removerCadeira(this)">🗑️</button>
                 </div>
                 <div class="cadeira-membros-container"></div>
                 <button class="btn-add-membro" onclick="abrirModalAdicionarMembro(this)">➕ Adicionar Membro</button>
               `;
+              
+              const setorConteudo = setorEl.querySelector('.setor-conteudo');
+              const btnAddCadeira = setorConteudo.querySelector('.btn-add-cadeira');
+              setorConteudo.insertBefore(cadeiraEl, btnAddCadeira);
               
               const membroContainer = cadeiraEl.querySelector('.cadeira-membros-container');
               cadeira.membros.forEach(m => {
@@ -5954,117 +5873,8 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
     // ============================================
     // SALVAR HTML
     // ============================================
-    
-    /**
-     * Save complete HTML with embedded state
-     * Embeds all current app state including 'documentos' field in a script tag
-     */
-    function saveFullHTML() {
-      // Collect current state
-      const state = {
-        versao: '2.3',
-        dataExportacao: new Date().toISOString(),
-        conselho: {
-          titulo: document.querySelector('.header h1')?.textContent || '',
-          subtitulo: document.querySelector('.header p')?.textContent || '',
-          proximaReuniao: {
-            data: document.getElementById('dataProximaReuniao')?.textContent || '',
-            local: document.getElementById('localProximaReuniao')?.textContent || ''
-          }
-        },
-        presidencia: extrairPresidencia(),
-        grupos: extrairGrupos(),
-        camaras: extrairCamaras(),
-        documentos: salvarEstruturaDocumentos()
-      };
-      
-      // Get current HTML
-      let htmlContent = document.documentElement.outerHTML;
-      
-      // Create state script tag with escaped content
-      const stateJSON = JSON.stringify(state, null, 2);
-      // Escape closing script tags in the JSON to prevent breaking HTML
-      const escapedStateJSON = stateJSON.replace(/<\/script>/gi, '<\\/script>');
-      
-      const stateScriptTag = `
-  <script id="embedded-app-state" type="application/json">
-${escapedStateJSON}
-  <` + `/script>`;
-      
-      // Try to inject before closing body tag
-      if (htmlContent.includes('</body>')) {
-        htmlContent = htmlContent.replace('</body>', stateScriptTag + '\n</body>');
-      } else {
-        // Fallback: inject before closing html tag
-        htmlContent = htmlContent.replace('</html>', stateScriptTag + '\n</html>');
-      }
-      
-      // Create blob and download
-      const blob = new Blob([htmlContent], { type: 'text/html; charset=utf-8' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      
-      const dataAtual = new Date().toISOString().slice(0, 10);
-      link.download = `conselho_completo_${dataAtual}.html`;
-      
-      link.click();
-      
-      alert('✅ HTML completo exportado com sucesso com estado embutido!\n\n📁 Arquivo: ' + link.download + 
-            '\n\n💾 O arquivo contém:' +
-            '\n• Todo o HTML da aplicação' +
-            '\n• Estado completo do app em JSON embutido' +
-            '\n• Campo documentos com formatação HTML preservada' +
-            '\n• Todos os dados de cadeiras, membros e câmaras' +
-            '\n\n💡 Você pode:' +
-            '\n• Publicar este arquivo na web' +
-            '\n• Reabrir e continuar editando' +
-            '\n• Todas as funções permanecem disponíveis');
-    }
-    
     function salvarHTML() {
-        // Coletar todos os dados do estado atual
-        const estadoAtual = {
-          versao: '2.2',
-          dataExportacao: new Date().toISOString(),
-          conselho: {
-            titulo: document.querySelector('.header h1')?.textContent || '',
-            subtitulo: document.querySelector('.header p')?.textContent || '',
-            proximaReuniao: {
-              data: document.getElementById('dataProximaReuniao')?.textContent || '',
-              local: document.getElementById('localProximaReuniao')?.textContent || ''
-            }
-          },
-          presidencia: extrairPresidencia(),
-          grupos: extrairGrupos(),
-          camaras: extrairCamaras(),
-          documentos: salvarEstruturaDocumentos()
-        };
-        
-        // Criar um elemento script para embutir os dados no HTML
-        const scriptEmbed = document.createElement('script');
-        scriptEmbed.id = 'embedded-state-data';
-        scriptEmbed.type = 'application/json';
-        // JSON.stringify já escapa caracteres especiais apropriadamente
-        // Substituir </script> para evitar fechamento prematuro da tag
-        scriptEmbed.textContent = JSON.stringify(estadoAtual).replace(/<\/script>/gi, '<\\/script>');
-        
-        // Clonar o documento para não modificar o original
-        const htmlClone = document.documentElement.cloneNode(true);
-        
-        // Remover qualquer script de dados embarcados anterior
-        const scriptAntigo = htmlClone.querySelector('#embedded-state-data');
-        if(scriptAntigo) {
-          scriptAntigo.remove();
-        }
-        
-        // Adicionar o novo script com os dados ao final do body
-        const bodyClone = htmlClone.querySelector('body');
-        if(bodyClone) {
-          bodyClone.appendChild(scriptEmbed.cloneNode(true));
-        }
-        
-        // Gerar o HTML completo
-        const htmlContent = '<!DOCTYPE html>\n' + htmlClone.outerHTML;
+        const htmlContent = document.documentElement.outerHTML;
         
         const blob = new Blob([htmlContent], { type: 'text/html' });
         const link = document.createElement('a');
@@ -6076,13 +5886,11 @@ ${escapedStateJSON}
         link.click();
         
         alert('✅ HTML completo exportado com sucesso!\n\n📁 Arquivo: ' + link.download + 
-              '\n\n💡 O arquivo contém:' +
-              '\n• Todos os dados atuais (membros, cadeiras, documentos)' +
-              '\n• Estado completo embarcado' +
-              '\n• Ao reabrir, os dados serão carregados automaticamente' +
+              '\n\n💡 Você pode:' +
+              '\n• Publicar este arquivo na web' +
+              '\n• Continuar editando normalmente' +
+              '\n• Carregar JSON posteriormente para atualizar os dados' +
               '\n• Todas as funções de edição permanecem disponíveis');
-      // Call the new saveFullHTML function
-      saveFullHTML();
     }
 
     function carregarJSONExemplo() {
@@ -6196,55 +6004,9 @@ ${escapedStateJSON}
     // ============================================
     // INICIALIZAÇÃO
     // ============================================
-    
-    /**
-     * Load embedded state if present in the HTML
-     * This allows the app to restore its state when the HTML is reopened
-     */
-    function carregarEstadoEmbutido() {
-      const embeddedStateElement = document.getElementById('embedded-app-state');
-      if (!embeddedStateElement) {
-        console.log('ℹ️ Nenhum estado embutido encontrado');
-        return false;
-      }
-      
-      try {
-        const stateJSON = embeddedStateElement.textContent;
-        const state = JSON.parse(stateJSON);
-        
-        console.log('✅ Estado embutido encontrado, carregando...');
-        aplicarDadosJSON(state);
-        console.log('✅ Estado embutido carregado com sucesso!');
-        return true;
-      } catch (error) {
-        console.error('❌ Erro ao carregar estado embutido:', error);
-        return false;
-      }
-    }
-    
     document.addEventListener('DOMContentLoaded', function() {
-      // Verificar se há dados embarcados no HTML e carregar automaticamente
-      const embeddedStateScript = document.getElementById('embedded-state-data');
-      if(embeddedStateScript && embeddedStateScript.type === 'application/json') {
-        try {
-          const estadoEmbarcado = JSON.parse(embeddedStateScript.textContent);
-          // Validar estrutura básica do JSON antes de aplicar
-          if(estadoEmbarcado && typeof estadoEmbarcado === 'object' && estadoEmbarcado.versao) {
-            aplicarDadosJSON(estadoEmbarcado);
-            console.log('✅ Dados embarcados carregados automaticamente');
-          } else {
-            console.warn('⚠️ Dados embarcados possuem estrutura inválida');
-          }
-        } catch(err) {
-          console.error('❌ Erro ao carregar dados embarcados:', err);
-        }
-      }
-      
       configurarDragAndDrop();
       colapsarTudo();
-      
-      // Try to load embedded state first
-      carregarEstadoEmbutido();
       
       const style = document.createElement('style');
       style.textContent = `
