@@ -6432,7 +6432,7 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       itemArrastadoDoc = this;
       this.classList.add('dragging');
       e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/html', this.innerHTML);
+      e.dataTransfer.setData('text/plain', this.dataset.id || 'item');
     }
     
     function handleDragEndDoc(e) {
@@ -6459,7 +6459,7 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       
       // Remover highlight da pasta
       const pastaHeader = this.querySelector('.pasta-header');
-      if (pastaHeader && !this.contains(e.relatedTarget)) {
+      if (pastaHeader && e.relatedTarget && !this.contains(e.relatedTarget)) {
         pastaHeader.classList.remove('drag-over-pasta');
       }
     }
