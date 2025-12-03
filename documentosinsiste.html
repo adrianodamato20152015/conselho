@@ -1733,7 +1733,7 @@
           <div class="cadeira presidencia" style="background: white; border-radius: 8px;">
             <div class="cadeira-header">
               <span class="icone-cadeira">🪑</span>
-              <span class="numero-cadeira">Presidente</span>
+              <span class="numero-cadeira" title="Cadeira 1 do Poder Público">Presidente</span>
             </div>
             <div class="cadeira-membros-container" id="presidenciaContainer">
               <!-- Presidente será adicionado via JSON -->
@@ -3098,13 +3098,20 @@ function abortarReuniaoForcado() {
         return;
       }
       
+      const grupo = setor.closest('.grupo');
+      const grupoId = grupo ? grupo.id : '';
+      
       const cadeiraExistentes = setor.querySelectorAll('.cadeira');
-      const numCadeiraAtual = cadeiraExistentes.length + 1;
+      const indexCadeira = cadeiraExistentes.length;
+      
+      // Calcular número sugerido baseado na nova lógica
+      const numeroSugerido = getCadeiraNumberLabel(grupoId, indexCadeira);
       
       const numeroCadeira = prompt(
         `📝 Digite o número/nome da nova cadeira:\n\n` +
-        `Cadeiras existentes: ${cadeiraExistentes.length}`,
-        `Cadeira ${numCadeiraAtual}`
+        `Cadeiras existentes: ${cadeiraExistentes.length}` +
+        (grupoId === 'poder-publico' ? '\n\n💡 Lembre-se: Cadeira 1 é a Presidência' : ''),
+        numeroSugerido
       );
       
       if(!numeroCadeira) return;
@@ -5266,7 +5273,7 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       conteudo += `
         <div style="margin-bottom: 25px;">
           <h3 style="color: #495057; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #dee2e6;">
-            🏛️ PRESIDÊNCIA
+            🏛️ PRESIDÊNCIA (Cadeira 1 - Poder Público)
           </h3>
           <div class="card-grid">
       `;
@@ -5289,6 +5296,9 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
             <div class="card-telefone">📞 ${telefone}</div>
             <div style="margin-top: 8px;">
               <span class="card-tipo" style="background: #ff6b6b;">${tipo}</span>
+            </div>
+            <div style="font-size: 0.7em; color: #868e96; margin-top: 5px;">
+              Cadeira: 1 (Presidente)
             </div>
           </div>
         `;
