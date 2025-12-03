@@ -1062,6 +1062,11 @@
       box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     }
     
+    .btn-criar-pasta-raiz,
+    .btn-adicionar-doc-raiz {
+      display: none;
+    }
+    
     .edit-mode .btn-criar-pasta-raiz,
     .edit-mode .btn-adicionar-doc-raiz {
       display: inline-block !important;
@@ -1819,8 +1824,8 @@
       <div class="documentos-titulo">📁 DOCUMENTOS E LEGISLAÇÃO</div>
       
       <div class="documentos-botoes">
-        <button class="btn-criar-pasta-raiz" onclick="abrirModalCriarPasta()" style="display:none;">➕ Nova Pasta</button>
-        <button class="btn-adicionar-doc-raiz" onclick="abrirModalAdicionarDocumento(null)" style="display:none;">➕ Novo Documento</button>
+        <button class="btn-criar-pasta-raiz" onclick="abrirModalCriarPasta()">➕ Nova Pasta</button>
+        <button class="btn-adicionar-doc-raiz" onclick="abrirModalAdicionarDocumento(null)">➕ Novo Documento</button>
       </div>
 
       <div class="documentos-lista" id="documentosLista">
