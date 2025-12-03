@@ -1733,7 +1733,7 @@
           <div class="cadeira presidencia" style="background: white; border-radius: 8px;">
             <div class="cadeira-header">
               <span class="icone-cadeira">🪑</span>
-              <span class="numero-cadeira" title="Cadeira 1 do Poder Público">Presidente</span>
+              <span class="numero-cadeira">Presidente</span>
             </div>
             <div class="cadeira-membros-container" id="presidenciaContainer">
               <!-- Presidente será adicionado via JSON -->
@@ -2081,64 +2081,6 @@ function confirmarCriarCamara() {
     }
 
     // ============================================
-    // UTILITÁRIOS DE NUMERAÇÃO DE CADEIRAS
-    // ============================================
-    /**
-     * Retorna o número correto da cadeira considerando que:
-     * - Presidência = Cadeira 1 do setor público
-     * - Cadeiras do setor público são numeradas 1-18 (incluindo Presidente)
-     * - A numeração exibida deve sempre refletir esta regra
-     */
-    function getCadeiraNumberLabel(grupoId, indexCadeira) {
-      if (grupoId === 'poder-publico') {
-        // Para poder público, Cadeira 1 é o Presidente, então cadeiras começam em 2
-        return `Cadeira ${indexCadeira + 2}`;
-      }
-      // Para sociedade civil, numeração normal
-      return `Cadeira ${indexCadeira + 1}`;
-    }
-
-    /**
-     * Aplica o label correto de número de cadeira a um elemento
-     */
-    function applyCadeiraNumberLabel(cadeiraElement) {
-      const grupo = cadeiraElement.closest('.grupo');
-      if (!grupo) return;
-      
-      const grupoId = grupo.id;
-      const setor = cadeiraElement.closest('.setor');
-      if (!setor) return;
-      
-      const cadeiras = setor.querySelectorAll('.cadeira');
-      const indexCadeira = Array.from(cadeiras).indexOf(cadeiraElement);
-      
-      const numeroLabel = getCadeiraNumberLabel(grupoId, indexCadeira);
-      const numeroCadeiraElement = cadeiraElement.querySelector('.numero-cadeira');
-      if (numeroCadeiraElement) {
-        numeroCadeiraElement.textContent = numeroLabel;
-      }
-    }
-
-    /**
-     * Atualiza os números de todas as cadeiras de um setor
-     */
-    function atualizarNumerosCadeirasSetor(setor) {
-      const cadeiras = setor.querySelectorAll('.cadeira');
-      cadeiras.forEach(cadeira => {
-        applyCadeiraNumberLabel(cadeira);
-      });
-    }
-
-    /**
-     * Conta total de cadeiras do setor público incluindo a Presidência
-     */
-    function contarCadeirasPoderPublico() {
-      const presidente = document.querySelectorAll('#presidenciaContainer .membro-linha:not(.vazio)').length > 0 ? 1 : 0;
-      const cadeirasPoderPublico = document.querySelectorAll('#poder-publico .cadeira').length;
-      return presidente + cadeirasPoderPublico;
-    }
-
-    // ============================================
     // ATUALIZAR CONTADORES
     // ============================================
     function atualizarContadoresGrupo(grupoId) {
@@ -2146,14 +2088,7 @@ function confirmarCriarCamara() {
       if(!grupo) return;
       
       const numSetores = grupo.querySelectorAll('.setor').length;
-      let numCadeiras;
-      
-      // Para poder público, incluir a presidência na contagem
-      if (grupoId === 'poder-publico') {
-        numCadeiras = contarCadeirasPoderPublico();
-      } else {
-        numCadeiras = grupo.querySelectorAll('.cadeira').length;
-      }
+      const numCadeiras = grupo.querySelectorAll('.cadeira').length;
       
       const contadorSetores = grupo.querySelector('.contador-setores');
       const contadorCadeiras = grupo.querySelector('.contador-cadeiras-total');
@@ -3098,20 +3033,13 @@ function abortarReuniaoForcado() {
         return;
       }
       
-      const grupo = setor.closest('.grupo');
-      const grupoId = grupo ? grupo.id : '';
-      
       const cadeiraExistentes = setor.querySelectorAll('.cadeira');
-      const indexCadeira = cadeiraExistentes.length;
-      
-      // Calcular número sugerido baseado na nova lógica
-      const numeroSugerido = getCadeiraNumberLabel(grupoId, indexCadeira);
+      const numCadeiraAtual = cadeiraExistentes.length + 1;
       
       const numeroCadeira = prompt(
         `📝 Digite o número/nome da nova cadeira:\n\n` +
-        `Cadeiras existentes: ${cadeiraExistentes.length}` +
-        (grupoId === 'poder-publico' ? '\n\n💡 Lembre-se: Cadeira 1 é a Presidência' : ''),
-        numeroSugerido
+        `Cadeiras existentes: ${cadeiraExistentes.length}`,
+        `Cadeira ${numCadeiraAtual}`
       );
       
       if(!numeroCadeira) return;
@@ -5273,7 +5201,7 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       conteudo += `
         <div style="margin-bottom: 25px;">
           <h3 style="color: #495057; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #dee2e6;">
-            🏛️ PRESIDÊNCIA (Cadeira 1 - Poder Público)
+            🏛️ PRESIDÊNCIA
           </h3>
           <div class="card-grid">
       `;
@@ -5296,9 +5224,6 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
             <div class="card-telefone">📞 ${telefone}</div>
             <div style="margin-top: 8px;">
               <span class="card-tipo" style="background: #ff6b6b;">${tipo}</span>
-            </div>
-            <div style="font-size: 0.7em; color: #868e96; margin-top: 5px;">
-              Cadeira: 1 (Presidente)
             </div>
           </div>
         `;
