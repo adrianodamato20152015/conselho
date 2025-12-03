@@ -879,6 +879,201 @@
       transform: translateY(-3px);
     }
     
+    /* CONFIRMAÇÃO DE PRESENÇAS */
+    .tela-confirmacao {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      max-width: 900px;
+      margin: 20px auto;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    }
+    
+    .contador-confirmacoes {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      margin: 15px 0;
+      font-size: 1em;
+    }
+    
+    .contador-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .lista-confirmacao {
+      max-height: 65vh;
+      overflow-y: auto;
+      margin: 20px 0 100px 0;
+    }
+    
+    .item-confirmacao {
+      background: #f8f9fa;
+      border: 2px solid #dee2e6;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 15px;
+      transition: all 0.3s;
+    }
+    
+    .item-confirmacao:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transform: translateY(-2px);
+    }
+    
+    .confirmacao-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #dee2e6;
+    }
+    
+    .confirmacao-boneco {
+      font-size: 2.5em;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      border-radius: 50%;
+      border: 3px solid #dee2e6;
+    }
+    
+    .confirmacao-info {
+      flex: 1;
+    }
+    
+    .confirmacao-nome {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 4px;
+    }
+    
+    .confirmacao-cargo {
+      font-size: 0.9em;
+      color: #6c757d;
+      font-weight: 600;
+    }
+    
+    .confirmacao-contatos {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    
+    .confirmacao-contato {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9em;
+      color: #495057;
+    }
+    
+    .confirmacao-status {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 12px;
+    }
+    
+    .confirmacao-status-label {
+      font-weight: bold;
+      color: #495057;
+    }
+    
+    .status-bolinhas {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .status-bolinha {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      border: 3px solid #dee2e6;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+    }
+    
+    .status-bolinha:hover {
+      transform: scale(1.15);
+      border-width: 4px;
+    }
+    
+    .status-bolinha.verde { background: #51cf66; }
+    .status-bolinha.amarelo { background: #ffd43b; }
+    .status-bolinha.vermelho { background: #ff6b6b; }
+    
+    .status-bolinha.selected {
+      border-color: #212529;
+      border-width: 5px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.4);
+    }
+    
+    .confirmacao-observacoes-label {
+      font-weight: bold;
+      color: #495057;
+      margin-bottom: 8px;
+    }
+    
+    .confirmacao-textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: 10px;
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.9em;
+      resize: vertical;
+      transition: border-color 0.3s;
+    }
+    
+    .confirmacao-textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    .botoes-confirmacao-fixo {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      z-index: 1000;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 90%;
+    }
+    
+    .btn-confirmacao-fixo {
+      padding: 12px 25px;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      font-size: 0.95em;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      color: white;
+    }
+    
+    .btn-confirmacao-fixo:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    }
+    
     /* ANÁLISES */
     .analises-container { 
       background: white; border-radius: 10px; 
@@ -1299,6 +1494,7 @@
     <div class="menu-item" id="menuCancelarEdicao" onclick="finalizarEdicao()"><span>💾</span><span>Finalizar Edição</span></div>
     <div class="menu-item" onclick="abrirPaletaCores()"><span>🎨</span><span>Paleta de Cores</span></div>
     <div class="menu-item" onclick="ativarModoReuniao()"><span>📋</span><span>Modo Reunião</span></div>
+    <div class="menu-item" id="menuVerConfirmacoes" onclick="verConfirmacoes()" style="display:none;"><span>📞</span><span>Ver Confirmações</span></div>
     <div class="menu-item" onclick="irParaTela('analises')"><span>📊</span><span>Análises</span></div>
     <div class="menu-item" onclick="irParaTela('documentos')"><span>📁</span><span>Documentos</span></div>
     <div class="menu-item" onclick="salvarJSON()"><span>💾</span><span>Salvar JSON</span></div>
@@ -1355,6 +1551,7 @@
       <p style="margin-top:12px;color:#6c757d;font-size:0.85em;">
         🟢 Verde = Presente | 🟡 Amarelo = Justificou | 🔴 Vermelho = Faltou
       </p>
+      <button class="modal-btn modal-btn-primary" onclick="abrirConfirmacaoPresencas()">📞 Confirmar Presenças</button>
       <button class="modal-btn modal-btn-primary" onclick="iniciarReuniao()">✅ Iniciar Lista de Presença</button>
       <button class="modal-btn modal-btn-secondary" onclick="fecharModal('modalReuniao')">❌ Cancelar</button>
     </div>
@@ -1888,6 +2085,38 @@
     </div>
   </div>
 
+  <!-- TELA CONFIRMAÇÃO DE PRESENÇAS -->
+  <div class="tela" id="telaConfirmacao">
+    <div class="tela-confirmacao">
+      <div class="header">
+        <h1>📞 Confirmação de Presenças</h1>
+        <div class="reuniao-info">
+          <span>Reunião:</span> 
+          <span id="dataReuniaoConfirmacao">--/--/----</span> | 
+          <span>Local:</span> 
+          <span id="localReuniaoConfirmacao">---</span>
+        </div>
+      </div>
+      
+      <div class="contador-confirmacoes" id="contadorConfirmacoes">
+        <span class="contador-item"><span style="color:#51cf66;">●</span> <strong id="contConfirmados">0</strong> Confirmados</span>
+        <span class="contador-item"><span style="color:#ffd43b;">●</span> <strong id="contPendentes">0</strong> Pendentes</span>
+        <span class="contador-item"><span style="color:#ff6b6b;">●</span> <strong id="contAusencias">0</strong> Ausências</span>
+      </div>
+      
+      <div class="lista-confirmacao" id="listaConfirmacao">
+        <!-- Lista de confirmações será preenchida via JavaScript -->
+      </div>
+      
+      <div class="botoes-confirmacao-fixo">
+        <button class="btn-confirmacao-fixo" style="background: #667eea;" onclick="gerarPDFConfirmacoes()">📄 Gerar PDF</button>
+        <button class="btn-confirmacao-fixo" style="background: #51cf66;" onclick="salvarListaConfirmacoes()">💾 Salvar Lista</button>
+        <button class="btn-confirmacao-fixo" style="background: #ff6b6b;" onclick="apagarListaConfirmacoes()">🗑️ Apagar Lista</button>
+        <button class="btn-confirmacao-fixo" style="background: #6c757d;" onclick="voltarTelaInicial()">↩️ Voltar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- TELA ANÁLISES -->
   <div class="tela" id="telaAnalises">
     <div class="analises-container">
@@ -1962,6 +2191,7 @@
     let reuniaoAtual = null;
     let bolinhaEditando = null;
     let emojiContext = null;
+    let confirmacaoPresencas = null;
 
     // ============================================
     // FUNÇÕES AUXILIARES PARA MANIPULAÇÃO DE DATAS SEM TIMEZONE
@@ -2370,9 +2600,369 @@ function confirmarCriarCamara() {
     atualizarContadorQuorum();
     localStorage.removeItem('presencasReuniao'); // Limpar presenças anteriores
     atualizarContadorQuorum();
+    
+    // Limpar lista de confirmações quando iniciar a reunião
+    confirmacaoPresencas = null;
+    atualizarMenuConfirmacoes();
 }
 
-    // SUBSTITUIR ESTA FUNÇÃO COMPLETAMENTE:
+    // ============================================
+    // SISTEMA DE CONFIRMAÇÃO DE PRESENÇAS
+    // ============================================
+    
+    function abrirConfirmacaoPresencas() {
+      const data = document.getElementById('inputDataReuniao').value;
+      const local = document.getElementById('inputLocalReuniao').value;
+      
+      if(!data || !local) {
+        alert('⚠️ Preencha data e local da reunião!');
+        return;
+      }
+      
+      const dataFormatada = formatarDataSemTimezone(data);
+      
+      // Criar ou recuperar estrutura de confirmação
+      if (!confirmacaoPresencas) {
+        confirmacaoPresencas = {
+          ativa: true,
+          dataConfirmacao: new Date().toISOString(),
+          data: data,
+          dataFormatada: dataFormatada,
+          local: local,
+          membros: []
+        };
+        
+        // Coletar todos os membros ativos
+        const membrosColetados = [];
+        
+        // Coletar presidência
+        document.querySelectorAll('#presidenciaContainer .membro-linha:not(.vazio)').forEach(membro => {
+          const nome = membro.querySelector('.nome-membro')?.textContent || '';
+          if (nome && nome.trim() !== '' && nome !== 'VAGA' && nome !== '-') {
+            const membroData = extrairDadosMembro(membro);
+            membroData.cargo = 'Presidente';
+            membroData.membroId = 'pres-' + Date.now() + '-' + Math.random();
+            membroData.status = 'amarelo';
+            membroData.observacoes = '';
+            membrosColetados.push(membroData);
+          }
+        });
+        
+        // Coletar de todos os grupos
+        document.querySelectorAll('.grupo').forEach(grupo => {
+          grupo.querySelectorAll('.cadeira .membro-linha:not(.vazio)').forEach(membro => {
+            const nome = membro.querySelector('.nome-membro')?.textContent || '';
+            if (nome && nome.trim() !== '' && nome !== 'VAGA' && nome !== '-') {
+              const membroData = extrairDadosMembro(membro);
+              membroData.cargo = membro.classList.contains('titular') ? 'Titular' : 'Suplente';
+              membroData.membroId = 'membro-' + Date.now() + '-' + Math.random();
+              membroData.status = 'amarelo';
+              membroData.observacoes = '';
+              membrosColetados.push(membroData);
+            }
+          });
+        });
+        
+        confirmacaoPresencas.membros = membrosColetados;
+      } else {
+        // Atualizar data e local se já existir
+        confirmacaoPresencas.data = data;
+        confirmacaoPresencas.dataFormatada = dataFormatada;
+        confirmacaoPresencas.local = local;
+      }
+      
+      // Ir para tela de confirmação
+      document.querySelectorAll('.tela').forEach(t => t.classList.remove('active'));
+      document.getElementById('telaConfirmacao').classList.add('active');
+      
+      document.getElementById('dataReuniaoConfirmacao').textContent = dataFormatada;
+      document.getElementById('localReuniaoConfirmacao').textContent = local;
+      
+      renderizarListaConfirmacoes();
+      atualizarContadorConfirmacoes();
+      atualizarMenuConfirmacoes();
+      
+      fecharModal('modalReuniao');
+    }
+    
+    function renderizarListaConfirmacoes() {
+      const container = document.getElementById('listaConfirmacao');
+      container.innerHTML = '';
+      
+      if (!confirmacaoPresencas || !confirmacaoPresencas.membros || confirmacaoPresencas.membros.length === 0) {
+        container.innerHTML = '<p style="text-align:center;color:#6c757d;padding:40px;">Nenhum membro encontrado</p>';
+        return;
+      }
+      
+      confirmacaoPresencas.membros.forEach((membro, index) => {
+        const item = document.createElement('div');
+        item.className = 'item-confirmacao';
+        item.innerHTML = `
+          <div class="confirmacao-header">
+            <div class="confirmacao-boneco">${membro.boneco || '👤'}</div>
+            <div class="confirmacao-info">
+              <div class="confirmacao-nome">${membro.nome || 'Sem nome'}</div>
+              <div class="confirmacao-cargo">${membro.cargo || 'Conselheiro'}</div>
+            </div>
+          </div>
+          
+          <div class="confirmacao-contatos">
+            <div class="confirmacao-contato">
+              <span>📧</span>
+              <span>${membro.email || 'Não informado'}</span>
+            </div>
+            <div class="confirmacao-contato">
+              <span>📱</span>
+              <span>${membro.telefone || 'Não informado'}</span>
+            </div>
+          </div>
+          
+          <div class="confirmacao-status">
+            <span class="confirmacao-status-label">Status:</span>
+            <div class="status-bolinhas">
+              <div class="status-bolinha verde ${membro.status === 'verde' ? 'selected' : ''}" 
+                   onclick="alterarStatusConfirmacao(${index}, 'verde')"
+                   title="Confirmou presença"></div>
+              <div class="status-bolinha amarelo ${membro.status === 'amarelo' ? 'selected' : ''}" 
+                   onclick="alterarStatusConfirmacao(${index}, 'amarelo')"
+                   title="Não confirmou ainda"></div>
+              <div class="status-bolinha vermelho ${membro.status === 'vermelho' ? 'selected' : ''}" 
+                   onclick="alterarStatusConfirmacao(${index}, 'vermelho')"
+                   title="Confirmou ausência"></div>
+            </div>
+          </div>
+          
+          <div>
+            <div class="confirmacao-observacoes-label">Observações:</div>
+            <textarea class="confirmacao-textarea" 
+                      placeholder="Ex: Ligou em 01/12, confirmou presença..."
+                      onchange="atualizarObservacao(${index}, this.value)">${membro.observacoes || ''}</textarea>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+    
+    function alterarStatusConfirmacao(index, novoStatus) {
+      if (!confirmacaoPresencas || !confirmacaoPresencas.membros[index]) return;
+      
+      confirmacaoPresencas.membros[index].status = novoStatus;
+      renderizarListaConfirmacoes();
+      atualizarContadorConfirmacoes();
+    }
+    
+    function atualizarObservacao(index, texto) {
+      if (!confirmacaoPresencas || !confirmacaoPresencas.membros[index]) return;
+      
+      confirmacaoPresencas.membros[index].observacoes = texto;
+    }
+    
+    function atualizarContadorConfirmacoes() {
+      if (!confirmacaoPresencas || !confirmacaoPresencas.membros) {
+        document.getElementById('contConfirmados').textContent = '0';
+        document.getElementById('contPendentes').textContent = '0';
+        document.getElementById('contAusencias').textContent = '0';
+        return;
+      }
+      
+      const confirmados = confirmacaoPresencas.membros.filter(m => m.status === 'verde').length;
+      const pendentes = confirmacaoPresencas.membros.filter(m => m.status === 'amarelo').length;
+      const ausencias = confirmacaoPresencas.membros.filter(m => m.status === 'vermelho').length;
+      
+      document.getElementById('contConfirmados').textContent = confirmados;
+      document.getElementById('contPendentes').textContent = pendentes;
+      document.getElementById('contAusencias').textContent = ausencias;
+    }
+    
+    function atualizarMenuConfirmacoes() {
+      const menuItem = document.getElementById('menuVerConfirmacoes');
+      if (confirmacaoPresencas && confirmacaoPresencas.ativa) {
+        menuItem.style.display = 'flex';
+      } else {
+        menuItem.style.display = 'none';
+      }
+    }
+    
+    function verConfirmacoes() {
+      if (!confirmacaoPresencas || !confirmacaoPresencas.ativa) {
+        alert('⚠️ Não há lista de confirmações ativa.');
+        return;
+      }
+      
+      toggleMenu();
+      document.querySelectorAll('.tela').forEach(t => t.classList.remove('active'));
+      document.getElementById('telaConfirmacao').classList.add('active');
+      
+      document.getElementById('dataReuniaoConfirmacao').textContent = confirmacaoPresencas.dataFormatada || '--/--/----';
+      document.getElementById('localReuniaoConfirmacao').textContent = confirmacaoPresencas.local || '---';
+      
+      renderizarListaConfirmacoes();
+      atualizarContadorConfirmacoes();
+    }
+    
+    function salvarListaConfirmacoes() {
+      if (!confirmacaoPresencas) {
+        alert('⚠️ Não há lista de confirmações para salvar.');
+        return;
+      }
+      
+      // Atualizar timestamp
+      confirmacaoPresencas.dataConfirmacao = new Date().toISOString();
+      
+      alert('✅ Lista de confirmações salva com sucesso!\n\nOs dados foram salvos e serão incluídos no próximo salvamento JSON/HTML.');
+    }
+    
+    function apagarListaConfirmacoes() {
+      if (!confirmacaoPresencas) {
+        alert('⚠️ Não há lista de confirmações para apagar.');
+        return;
+      }
+      
+      // Verificar se há observações preenchidas
+      const temObservacoes = confirmacaoPresencas.membros.some(m => m.observacoes && m.observacoes.trim() !== '');
+      
+      let mensagem = 'Tem certeza que deseja apagar todas as confirmações?';
+      if (temObservacoes) {
+        mensagem = '⚠️ ATENÇÃO: Existem observações preenchidas!\n\nTem CERTEZA que deseja apagar todas as confirmações?\n\nEsta ação não pode ser desfeita.';
+      }
+      
+      if (!confirm(mensagem)) {
+        return;
+      }
+      
+      // Confirmação dupla se houver observações
+      if (temObservacoes) {
+        if (!confirm('ÚLTIMA CONFIRMAÇÃO: Apagar tudo mesmo?')) {
+          return;
+        }
+      }
+      
+      confirmacaoPresencas = null;
+      atualizarMenuConfirmacoes();
+      alert('✅ Lista de confirmações apagada com sucesso!');
+      voltarTelaInicial();
+    }
+    
+    function gerarPDFConfirmacoes() {
+      if (!confirmacaoPresencas || !confirmacaoPresencas.membros || confirmacaoPresencas.membros.length === 0) {
+        alert('⚠️ Não há dados para gerar o PDF.');
+        return;
+      }
+      
+      try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Configurações
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 15;
+        let yPos = margin;
+        
+        // Título
+        doc.setFontSize(16);
+        doc.setFont(undefined, 'bold');
+        doc.text('Lista de Confirmação de Presenças', pageWidth / 2, yPos, { align: 'center' });
+        yPos += 10;
+        
+        // Info da reunião
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'normal');
+        doc.text(`Data: ${confirmacaoPresencas.dataFormatada || '--/--/----'}`, margin, yPos);
+        yPos += 7;
+        doc.text(`Local: ${confirmacaoPresencas.local || '---'}`, margin, yPos);
+        yPos += 10;
+        
+        // Contador
+        const confirmados = confirmacaoPresencas.membros.filter(m => m.status === 'verde').length;
+        const pendentes = confirmacaoPresencas.membros.filter(m => m.status === 'amarelo').length;
+        const ausencias = confirmacaoPresencas.membros.filter(m => m.status === 'vermelho').length;
+        
+        doc.setFontSize(10);
+        doc.text(`Confirmados: ${confirmados} | Pendentes: ${pendentes} | Ausências: ${ausencias}`, margin, yPos);
+        yPos += 10;
+        
+        // Linha separadora
+        doc.setLineWidth(0.5);
+        doc.line(margin, yPos, pageWidth - margin, yPos);
+        yPos += 10;
+        
+        // Membros
+        doc.setFontSize(10);
+        confirmacaoPresencas.membros.forEach((membro, index) => {
+          // Verificar se precisa de nova página
+          if (yPos > pageHeight - 40) {
+            doc.addPage();
+            yPos = margin;
+          }
+          
+          // Nome e cargo
+          doc.setFont(undefined, 'bold');
+          doc.text(`${index + 1}. ${membro.nome || 'Sem nome'}`, margin, yPos);
+          yPos += 5;
+          
+          doc.setFont(undefined, 'normal');
+          doc.setFontSize(9);
+          doc.text(`Cargo: ${membro.cargo || 'Conselheiro'}`, margin + 5, yPos);
+          yPos += 5;
+          
+          // Email e telefone
+          doc.text(`Email: ${membro.email || 'Não informado'}`, margin + 5, yPos);
+          yPos += 5;
+          doc.text(`Telefone: ${membro.telefone || 'Não informado'}`, margin + 5, yPos);
+          yPos += 5;
+          
+          // Status
+          let statusTexto = '';
+          if (membro.status === 'verde') statusTexto = 'Confirmou presença';
+          else if (membro.status === 'amarelo') statusTexto = 'Não confirmou ainda';
+          else if (membro.status === 'vermelho') statusTexto = 'Confirmou ausência';
+          
+          doc.text(`Status: ${statusTexto}`, margin + 5, yPos);
+          yPos += 5;
+          
+          // Observações
+          if (membro.observacoes && membro.observacoes.trim() !== '') {
+            doc.text('Observações:', margin + 5, yPos);
+            yPos += 5;
+            
+            // Quebrar texto em linhas
+            const linhas = doc.splitTextToSize(membro.observacoes, pageWidth - margin * 2 - 10);
+            linhas.forEach(linha => {
+              if (yPos > pageHeight - 40) {
+                doc.addPage();
+                yPos = margin;
+              }
+              doc.text(linha, margin + 10, yPos);
+              yPos += 5;
+            });
+          }
+          
+          yPos += 5;
+        });
+        
+        // Rodapé
+        const dataGeracao = new Date().toLocaleString('pt-BR');
+        doc.setFontSize(8);
+        doc.text(`Gerado em: ${dataGeracao}`, margin, pageHeight - 10);
+        
+        // Salvar
+        const nomeArquivo = `confirmacoes_${confirmacaoPresencas.data || 'reuniao'}.pdf`;
+        doc.save(nomeArquivo);
+        
+        alert('✅ PDF gerado com sucesso!');
+      } catch (error) {
+        console.error('Erro ao gerar PDF:', error);
+        alert('❌ Erro ao gerar PDF: ' + error.message);
+      }
+    }
+    
+    function voltarTelaInicial() {
+      document.querySelectorAll('.tela').forEach(t => t.classList.remove('active'));
+      document.getElementById('telaPrincipal').classList.add('active');
+    }
+
+    // ============================================
 function carregarListaPresenca() {
     const container = document.getElementById('listaPresenca');
     container.innerHTML = '';
@@ -5692,7 +6282,8 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
         presidencia: extrairPresidencia(),
         grupos: extrairGrupos(),
         camaras: extrairCamaras(),
-        documentos: salvarEstruturaDocumentos()
+        documentos: salvarEstruturaDocumentos(),
+        confirmacaoPresencas: confirmacaoPresencas || null
       };
       
       // Gerar nome dinâmico do arquivo
@@ -6084,6 +6675,12 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
           
           atualizarContadorCamara(camaraEl);
         });
+      }
+      
+      // Carregar confirmação de presenças se existir
+      if (dados.confirmacaoPresencas) {
+        confirmacaoPresencas = dados.confirmacaoPresencas;
+        atualizarMenuConfirmacoes();
       }
       
       configurarDragAndDrop();
@@ -6991,6 +7588,9 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
 
   
   </script>
+
+<!-- jsPDF library for PDF generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <!-- Script para dados embarcados de documentos (será preenchido ao salvar HTML) -->
 <script type="application/json" id="dados-documentos-embarcados">
