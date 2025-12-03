@@ -5917,7 +5917,9 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
         const scriptEmbed = document.createElement('script');
         scriptEmbed.id = 'embedded-state-data';
         scriptEmbed.type = 'application/json';
-        scriptEmbed.textContent = JSON.stringify(estadoAtual);
+        // JSON.stringify já escapa caracteres especiais apropriadamente
+        // Substituir </script> para evitar fechamento prematuro da tag
+        scriptEmbed.textContent = JSON.stringify(estadoAtual).replace(/<\/script>/gi, '<\\/script>');
         
         // Clonar o documento para não modificar o original
         const htmlClone = document.documentElement.cloneNode(true);
@@ -6068,11 +6070,16 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
     document.addEventListener('DOMContentLoaded', function() {
       // Verificar se há dados embarcados no HTML e carregar automaticamente
       const embeddedStateScript = document.getElementById('embedded-state-data');
-      if(embeddedStateScript) {
+      if(embeddedStateScript && embeddedStateScript.type === 'application/json') {
         try {
           const estadoEmbarcado = JSON.parse(embeddedStateScript.textContent);
-          aplicarDadosJSON(estadoEmbarcado);
-          console.log('✅ Dados embarcados carregados automaticamente');
+          // Validar estrutura básica do JSON antes de aplicar
+          if(estadoEmbarcado && typeof estadoEmbarcado === 'object' && estadoEmbarcado.versao) {
+            aplicarDadosJSON(estadoEmbarcado);
+            console.log('✅ Dados embarcados carregados automaticamente');
+          } else {
+            console.warn('⚠️ Dados embarcados possuem estrutura inválida');
+          }
         } catch(err) {
           console.error('❌ Erro ao carregar dados embarcados:', err);
         }
