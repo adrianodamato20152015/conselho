@@ -1236,6 +1236,12 @@
       margin: 5px 0;
       opacity: 0.7;
     }
+    
+    .pasta-header.drag-over-pasta {
+      background: linear-gradient(135deg, #c8e6c9, #a5d6a7) !important;
+      box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+      transform: scale(1.02);
+    }
   </style>
 </head>
 <body>
@@ -3561,6 +3567,21 @@ function abortarReuniaoForcado() {
       document.getElementById('inputEmojiCamara').value = '';
       document.getElementById('previewEmojiCamara').style.display = 'none';
     }
+    
+    function atualizarPreviewEmoji() {
+      const nome = document.getElementById('inputNomeCamara')?.value || '';
+      const emoji = document.getElementById('inputEmojiCamara')?.value || '';
+      const preview = document.getElementById('previewEmojiCamara');
+      
+      if (nome || emoji) {
+        const nomeDisplay = nome || 'Nome da Câmara';
+        const emojiDisplay = emoji || '🏛️';
+        preview.textContent = `${emojiDisplay} ${nomeDisplay}`;
+        preview.style.display = 'block';
+      } else {
+        preview.style.display = 'none';
+      }
+    }
 
     function editarNomeCamara(btn) {
       if(!modoEdicao) return;
@@ -5331,14 +5352,48 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
         documentos: salvarEstruturaDocumentos()
       };
       
+      // Gerar nome dinâmico do arquivo
+      const nomeArquivo = gerarNomeArquivoJSON();
+      
       const json = JSON.stringify(dados, null, 2);
       const blob = new Blob([json], { type: 'application/json' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `conselho_${new Date().toISOString().slice(0,10)}.json`;
+      link.download = nomeArquivo;
       link.click();
       
-      alert('✅ JSON exportado com sucesso!');
+      alert(`✅ Arquivo salvo: ${nomeArquivo}`);
+    }
+    
+    function gerarNomeArquivoJSON() {
+      // Pegar o título da tela principal
+      const titulo = document.querySelector('.header h1')?.textContent || 'conselho';
+      
+      // Extrair a última palavra do título
+      const palavras = titulo.trim().split(/\s+/);
+      let ultimaPalavra = palavras.length > 0 ? palavras[palavras.length - 1] : 'conselho';
+      
+      // Remover acentos e caracteres especiais
+      ultimaPalavra = ultimaPalavra
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+        .replace(/[^a-zA-Z0-9]/g, '') // Remove caracteres especiais
+        .toLowerCase();
+      
+      // Se ficou vazio após limpeza, usar 'conselho'
+      if (!ultimaPalavra) {
+        ultimaPalavra = 'conselho';
+      }
+      
+      // Obter data atual no formato DD_MM_AAAA
+      const hoje = new Date();
+      const dia = String(hoje.getDate()).padStart(2, '0');
+      const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+      const ano = hoje.getFullYear();
+      const dataFormatada = `${dia}_${mes}_${ano}`;
+      
+      // Retornar nome no formato: ultimapalavra_DD_MM_AAAA.json
+      return `${ultimaPalavra}_${dataFormatada}.json`;
     }
 
     function extrairPresidencia() {
@@ -5986,7 +6041,11 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       }
       
       container.innerHTML = '';
-      documentosData.estrutura.forEach(item => {
+      
+      // Ordenar estrutura por ordem antes de renderizar
+      const estruturaOrdenada = [...documentosData.estrutura].sort((a, b) => (a.ordem || 999) - (b.ordem || 999));
+      
+      estruturaOrdenada.forEach(item => {
         container.appendChild(criarElementoItem(item, null));
       });
       
@@ -6047,7 +6106,9 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       conteudoDiv.dataset.id = pasta.id;
       
       if(pasta.filhos && pasta.filhos.length > 0) {
-        pasta.filhos.forEach(filho => {
+        // Ordenar filhos por ordem antes de renderizar
+        const filhosOrdenados = [...pasta.filhos].sort((a, b) => (a.ordem || 999) - (b.ordem || 999));
+        filhosOrdenados.forEach(filho => {
           conteudoDiv.appendChild(criarElementoItem(filho, pasta.id));
         });
       }
@@ -6331,6 +6392,7 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
     function configurarDragDropDocumentos() {
       if (!modoEdicao) return;
       
+      // Configurar drag para todos os itens (pastas e documentos)
       const pastasItens = document.querySelectorAll('.pasta-item');
       const docItens = document.querySelectorAll('.documento-item');
       
@@ -6341,6 +6403,8 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
         pasta.addEventListener('dragend', handleDragEndDoc);
         pasta.addEventListener('dragover', handleDragOverDoc);
         pasta.addEventListener('drop', handleDropDoc);
+        pasta.addEventListener('dragenter', handleDragEnterDoc);
+        pasta.addEventListener('dragleave', handleDragLeaveDoc);
       });
       
       docItens.forEach((doc, index) => {
@@ -6350,6 +6414,13 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
         doc.addEventListener('dragend', handleDragEndDoc);
         doc.addEventListener('dragover', handleDragOverDoc);
         doc.addEventListener('drop', handleDropDoc);
+      });
+      
+      // Configurar drop zones para conteúdo de pastas
+      const pastasConteudo = document.querySelectorAll('.pasta-conteudo');
+      pastasConteudo.forEach(conteudo => {
+        conteudo.addEventListener('dragover', handleDragOverPastaConteudo);
+        conteudo.addEventListener('drop', handleDropPastaConteudo);
       });
     }
     
@@ -6361,11 +6432,36 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       itemArrastadoDoc = this;
       this.classList.add('dragging');
       e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', this.dataset.id || 'item');
     }
     
     function handleDragEndDoc(e) {
       this.classList.remove('dragging');
       document.querySelectorAll('.drop-indicator').forEach(ind => ind.remove());
+      document.querySelectorAll('.drag-over-pasta').forEach(el => el.classList.remove('drag-over-pasta'));
+    }
+    
+    function handleDragEnterDoc(e) {
+      if (!modoEdicao || !itemArrastadoDoc) return;
+      if (this === itemArrastadoDoc) return;
+      
+      // Se for uma pasta e o item arrastado não for a própria pasta
+      if (this.classList.contains('pasta-item')) {
+        const pastaHeader = this.querySelector('.pasta-header');
+        if (pastaHeader) {
+          pastaHeader.classList.add('drag-over-pasta');
+        }
+      }
+    }
+    
+    function handleDragLeaveDoc(e) {
+      if (!modoEdicao || !itemArrastadoDoc) return;
+      
+      // Remover highlight da pasta
+      const pastaHeader = this.querySelector('.pasta-header');
+      if (pastaHeader && e.relatedTarget && !this.contains(e.relatedTarget)) {
+        pastaHeader.classList.remove('drag-over-pasta');
+      }
     }
     
     function handleDragOverDoc(e) {
@@ -6387,10 +6483,30 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       }
     }
     
+    function handleDragOverPastaConteudo(e) {
+      if (!modoEdicao || !itemArrastadoDoc) return;
+      e.preventDefault();
+      e.stopPropagation();
+      e.dataTransfer.dropEffect = 'move';
+      
+      // Mostrar indicador dentro do conteúdo da pasta
+      const afterElement = getDragAfterElement(this, e.clientY);
+      const indicator = document.querySelector('.drop-indicator') || createDropIndicator();
+      
+      if (afterElement == null) {
+        this.appendChild(indicator);
+      } else {
+        this.insertBefore(indicator, afterElement);
+      }
+    }
+    
     function handleDropDoc(e) {
       if (!modoEdicao || !itemArrastadoDoc) return;
       e.preventDefault();
       e.stopPropagation();
+      
+      // Remover highlights
+      document.querySelectorAll('.drag-over-pasta').forEach(el => el.classList.remove('drag-over-pasta'));
       
       // Reordenar elementos
       const afterElement = getDragAfterElement(this.parentElement, e.clientY);
@@ -6398,6 +6514,32 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
         this.parentElement.appendChild(itemArrastadoDoc);
       } else {
         this.parentElement.insertBefore(itemArrastadoDoc, afterElement);
+      }
+      
+      // Atualizar ordem no modelo de dados
+      atualizarOrdemDocumentos();
+      
+      document.querySelectorAll('.drop-indicator').forEach(ind => ind.remove());
+    }
+    
+    function handleDropPastaConteudo(e) {
+      if (!modoEdicao || !itemArrastadoDoc) return;
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Verificar se está tentando soltar uma pasta dentro dela mesma
+      const pastaAtual = this.closest('.pasta-item');
+      if (pastaAtual === itemArrastadoDoc) {
+        document.querySelectorAll('.drop-indicator').forEach(ind => ind.remove());
+        return;
+      }
+      
+      // Reordenar elementos dentro do conteúdo da pasta
+      const afterElement = getDragAfterElement(this, e.clientY);
+      if (afterElement == null) {
+        this.appendChild(itemArrastadoDoc);
+      } else {
+        this.insertBefore(itemArrastadoDoc, afterElement);
       }
       
       // Atualizar ordem no modelo de dados
@@ -6428,16 +6570,34 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
     }
     
     function atualizarOrdemDocumentos() {
-      // Atualizar a ordem dos documentos no modelo de dados baseado na ordem visual
-      // Esta é uma implementação simplificada - pode ser expandida conforme necessário
+      // Atualizar a ordem dos documentos na raiz
       const lista = document.getElementById('documentosLista');
-      const itens = lista.querySelectorAll('.pasta-item, .documento-item');
+      const itensRaiz = lista.querySelectorAll(':scope > .pasta-item, :scope > .documento-item');
       
-      itens.forEach((item, index) => {
+      itensRaiz.forEach((item, index) => {
         const id = item.dataset.id;
         const itemData = encontrarItemPorId(documentosData.estrutura, id);
         if (itemData) {
           itemData.ordem = index;
+        }
+      });
+      
+      // Atualizar a ordem dentro de cada pasta
+      const pastas = lista.querySelectorAll('.pasta-conteudo');
+      pastas.forEach(pastaConteudo => {
+        const pastaItem = pastaConteudo.closest('.pasta-item');
+        const pastaId = pastaItem?.dataset.id;
+        const pastaData = pastaId ? encontrarItemPorId(documentosData.estrutura, pastaId) : null;
+        
+        if (pastaData && pastaData.filhos) {
+          const itens = pastaConteudo.querySelectorAll(':scope > .pasta-item, :scope > .documento-item');
+          itens.forEach((item, index) => {
+            const id = item.dataset.id;
+            const itemData = pastaData.filhos.find(f => f.id === id);
+            if (itemData) {
+              itemData.ordem = index;
+            }
+          });
         }
       });
     }
