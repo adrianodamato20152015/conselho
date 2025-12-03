@@ -6099,9 +6099,38 @@ ${escapedStateJSON}
     // ============================================
     // INICIALIZAÇÃO
     // ============================================
+    
+    /**
+     * Load embedded state if present in the HTML
+     * This allows the app to restore its state when the HTML is reopened
+     */
+    function carregarEstadoEmbutido() {
+      const embeddedStateElement = document.getElementById('embedded-app-state');
+      if (!embeddedStateElement) {
+        console.log('ℹ️ Nenhum estado embutido encontrado');
+        return false;
+      }
+      
+      try {
+        const stateJSON = embeddedStateElement.textContent;
+        const state = JSON.parse(stateJSON);
+        
+        console.log('✅ Estado embutido encontrado, carregando...');
+        aplicarDadosJSON(state);
+        console.log('✅ Estado embutido carregado com sucesso!');
+        return true;
+      } catch (error) {
+        console.error('❌ Erro ao carregar estado embutido:', error);
+        return false;
+      }
+    }
+    
     document.addEventListener('DOMContentLoaded', function() {
       configurarDragAndDrop();
       colapsarTudo();
+      
+      // Try to load embedded state first
+      carregarEstadoEmbutido();
       
       const style = document.createElement('style');
       style.textContent = `
