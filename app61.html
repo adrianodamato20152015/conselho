@@ -483,6 +483,17 @@
       border-radius: 10px; padding: 12px; 
       margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); 
       border: 2px solid #dee2e6; 
+      transition: all 0.2s;
+    }
+    
+    /* Estilos para drag & drop de cadeiras */
+    .edit-mode .cadeira {
+      cursor: move;
+    }
+    
+    .cadeira.dragging {
+      opacity: 0.5;
+      transform: scale(0.98);
     }
     /* LAYOUT LADO A LADO - TITULAR E SUPLENTE */
     .cadeira-membros-container {
@@ -522,8 +533,13 @@
       display: flex; flex-direction: column; 
       gap: 6px; padding: 10px; margin-bottom: 6px; 
       border-radius: 8px; transition: all 0.2s; 
-      cursor: move; 
     }
+    
+    /* Cursor move apenas no modo edição */
+    .edit-mode .cadeira .membro-linha:not(.vazio) {
+      cursor: move;
+    }
+    
     .membro-linha.titular { border-left: 3px solid #1976d2; }
     .membro-linha.suplente { border-left: 3px solid #f57c00; }
     
@@ -2246,8 +2262,12 @@ function confirmarCriarCamara() {
       
       // Configurar drag & drop para documentos
       configurarDragDropDocumentos();
+      
+      // Configurar drag & drop para cadeiras e membros
+      configurarDragDropCadeiras();
+      configurarDragDropMembros();
 
-      alert('🔓 Modo de edição ativado!\n\nAgora você pode:\n• Editar textos\n• Adicionar/remover setores e cadeiras\n• Criar câmaras temáticas\n• Arrastar membros\n• Editar currículos\n• Editar presenças (clique nas bolinhas)\n• Arrastar pastas e documentos para reordenar');
+      alert('🔓 Modo de edição ativado!\n\nAgora você pode:\n• Editar textos\n• Adicionar/remover setores e cadeiras\n• Criar câmaras temáticas\n• Arrastar membros entre câmaras\n• Arrastar cadeiras para reordenar dentro de setores\n• Arrastar membros para reordenar dentro de cadeiras\n• Editar currículos\n• Editar presenças (clique nas bolinhas)\n• Arrastar pastas e documentos para reordenar');
     }
 
     function finalizarEdicao() {
@@ -2282,6 +2302,17 @@ function confirmarCriarCamara() {
 
       document.querySelectorAll('.bolinha-presenca').forEach(bolinha => {
         bolinha.onclick = null;
+      });
+      
+      // Desabilitar drag & drop para cadeiras e membros
+      document.querySelectorAll('.cadeira').forEach(cadeira => {
+        cadeira.draggable = false;
+        cadeira.style.cursor = '';
+      });
+      
+      document.querySelectorAll('.cadeira .membro-linha').forEach(membro => {
+        membro.draggable = false;
+        membro.style.cursor = '';
       });
 
       fecharModal('modalFinalizarEdicao');
@@ -3527,6 +3558,7 @@ function abortarReuniaoForcado() {
       const membros = document.querySelectorAll('.membro-linha[draggable="true"]');
       const camaras = document.querySelectorAll('.camara');
       
+      // Drag & drop para membros nas câmaras (funcionalidade existente)
       membros.forEach(membro => {
         membro.addEventListener('dragstart', handleDragStart);
         membro.addEventListener('dragend', handleDragEnd);
@@ -3537,6 +3569,12 @@ function abortarReuniaoForcado() {
         camara.addEventListener('drop', handleDrop);
         camara.addEventListener('dragleave', handleDragLeave);
       });
+      
+      // Configurar drag & drop para cadeiras (subpastas)
+      configurarDragDropCadeiras();
+      
+      // Configurar drag & drop para membros dentro de cadeiras
+      configurarDragDropMembros();
     }
 
     let membroArrastado = null;
@@ -3612,6 +3650,205 @@ function abortarReuniaoForcado() {
         btn.closest('.camara-membro').remove();
         atualizarContadorCamara(camara);
       }
+    }
+
+    // ============================================
+    // DRAG & DROP PARA CADEIRAS E MEMBROS
+    // ============================================
+    let cadeiraArrastada = null;
+    let membroArrastadoDentro = null;
+    
+    function configurarDragDropCadeiras() {
+      if (!modoEdicao) return;
+      
+      const cadeiras = document.querySelectorAll('.cadeira');
+      cadeiras.forEach(cadeira => {
+        cadeira.draggable = true;
+        cadeira.style.cursor = 'move';
+        
+        cadeira.addEventListener('dragstart', handleDragStartCadeira);
+        cadeira.addEventListener('dragend', handleDragEndCadeira);
+        cadeira.addEventListener('dragover', handleDragOverCadeira);
+        cadeira.addEventListener('drop', handleDropCadeira);
+      });
+    }
+    
+    function handleDragStartCadeira(e) {
+      if (!modoEdicao) {
+        e.preventDefault();
+        return;
+      }
+      cadeiraArrastada = this;
+      this.style.opacity = '0.5';
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/html', this.innerHTML);
+      e.stopPropagation();
+    }
+    
+    function handleDragEndCadeira(e) {
+      this.style.opacity = '1';
+      
+      // Remover todos os indicadores visuais
+      document.querySelectorAll('.cadeira').forEach(cadeira => {
+        cadeira.style.borderTop = '';
+        cadeira.style.borderBottom = '';
+      });
+    }
+    
+    function handleDragOverCadeira(e) {
+      if (!modoEdicao || !cadeiraArrastada) return;
+      if (this === cadeiraArrastada) return;
+      
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      
+      // Adicionar indicador visual
+      const rect = this.getBoundingClientRect();
+      const midpoint = rect.top + rect.height / 2;
+      
+      if (e.clientY < midpoint) {
+        this.style.borderTop = '3px solid #667eea';
+        this.style.borderBottom = '';
+      } else {
+        this.style.borderTop = '';
+        this.style.borderBottom = '3px solid #667eea';
+      }
+      
+      e.stopPropagation();
+    }
+    
+    function handleDropCadeira(e) {
+      if (!modoEdicao || !cadeiraArrastada) return;
+      if (this === cadeiraArrastada) return;
+      
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const setor = this.closest('.setor');
+      const cadeiraArrastadaSetor = cadeiraArrastada.closest('.setor');
+      
+      // Só permitir reordenação dentro do mesmo setor
+      if (setor !== cadeiraArrastadaSetor) {
+        alert('⚠️ Só é possível reordenar cadeiras dentro do mesmo setor!');
+        this.style.borderTop = '';
+        this.style.borderBottom = '';
+        return;
+      }
+      
+      const rect = this.getBoundingClientRect();
+      const midpoint = rect.top + rect.height / 2;
+      
+      if (e.clientY < midpoint) {
+        setor.querySelector('.setor-conteudo').insertBefore(cadeiraArrastada, this);
+      } else {
+        setor.querySelector('.setor-conteudo').insertBefore(cadeiraArrastada, this.nextSibling);
+      }
+      
+      // Limpar indicadores
+      this.style.borderTop = '';
+      this.style.borderBottom = '';
+      
+      // Reconfigurar eventos após reordenação
+      configurarDragDropCadeiras();
+      configurarDragDropMembros();
+    }
+    
+    function configurarDragDropMembros() {
+      if (!modoEdicao) return;
+      
+      const membrosLinhas = document.querySelectorAll('.cadeira .membro-linha');
+      membrosLinhas.forEach(membro => {
+        if (!membro.classList.contains('vazio')) {
+          membro.draggable = true;
+          membro.style.cursor = 'move';
+          
+          membro.addEventListener('dragstart', handleDragStartMembroDentro);
+          membro.addEventListener('dragend', handleDragEndMembroDentro);
+          membro.addEventListener('dragover', handleDragOverMembroDentro);
+          membro.addEventListener('drop', handleDropMembroDentro);
+        }
+      });
+    }
+    
+    function handleDragStartMembroDentro(e) {
+      if (!modoEdicao) {
+        e.preventDefault();
+        return;
+      }
+      membroArrastadoDentro = this;
+      this.style.opacity = '0.5';
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/html', this.innerHTML);
+      e.stopPropagation();
+    }
+    
+    function handleDragEndMembroDentro(e) {
+      this.style.opacity = '1';
+      
+      // Remover todos os indicadores visuais
+      document.querySelectorAll('.membro-linha').forEach(membro => {
+        membro.style.borderTop = '';
+        membro.style.borderBottom = '';
+      });
+    }
+    
+    function handleDragOverMembroDentro(e) {
+      if (!modoEdicao || !membroArrastadoDentro) return;
+      if (this === membroArrastadoDentro) return;
+      if (this.classList.contains('vazio')) return;
+      
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      
+      // Adicionar indicador visual
+      const rect = this.getBoundingClientRect();
+      const midpoint = rect.top + rect.height / 2;
+      
+      if (e.clientY < midpoint) {
+        this.style.borderTop = '3px solid #667eea';
+        this.style.borderBottom = '';
+      } else {
+        this.style.borderTop = '';
+        this.style.borderBottom = '3px solid #667eea';
+      }
+      
+      e.stopPropagation();
+    }
+    
+    function handleDropMembroDentro(e) {
+      if (!modoEdicao || !membroArrastadoDentro) return;
+      if (this === membroArrastadoDentro) return;
+      
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const cadeira = this.closest('.cadeira');
+      const membroArrastadoCadeira = membroArrastadoDentro.closest('.cadeira');
+      
+      // Só permitir reordenação dentro da mesma cadeira
+      if (cadeira !== membroArrastadoCadeira) {
+        alert('⚠️ Só é possível reordenar membros dentro da mesma cadeira!');
+        this.style.borderTop = '';
+        this.style.borderBottom = '';
+        return;
+      }
+      
+      const container = cadeira.querySelector('.cadeira-membros-container');
+      const rect = this.getBoundingClientRect();
+      const midpoint = rect.top + rect.height / 2;
+      
+      if (e.clientY < midpoint) {
+        container.insertBefore(membroArrastadoDentro, this);
+      } else {
+        container.insertBefore(membroArrastadoDentro, this.nextSibling);
+      }
+      
+      // Limpar indicadores
+      this.style.borderTop = '';
+      this.style.borderBottom = '';
+      
+      // Reconfigurar eventos após reordenação
+      configurarDragDropMembros();
     }
 
     // ============================================
@@ -6096,6 +6333,12 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
     // INICIALIZAÇÃO
     // ============================================
     document.addEventListener('DOMContentLoaded', function() {
+      // Força o menu a sempre iniciar fechado
+      const menuDropdown = document.getElementById('menuDropdown');
+      if (menuDropdown) {
+        menuDropdown.classList.remove('active');
+      }
+      
       configurarDragAndDrop();
       colapsarTudo();
       
