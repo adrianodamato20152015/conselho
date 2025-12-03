@@ -2088,7 +2088,15 @@ function confirmarCriarCamara() {
       if(!grupo) return;
       
       const numSetores = grupo.querySelectorAll('.setor').length;
-      const numCadeiras = grupo.querySelectorAll('.cadeira').length;
+      let numCadeiras = grupo.querySelectorAll('.cadeira').length;
+      
+      // Para o setor público, incluir a Presidência como Cadeira 1
+      if(grupoId === 'poder-publico') {
+        const presidenciaContainer = document.getElementById('presidenciaContainer');
+        if(presidenciaContainer && presidenciaContainer.querySelectorAll('.membro-linha:not(.vazio)').length > 0) {
+          numCadeiras += 1; // Adicionar a Presidência como Cadeira 1
+        }
+      }
       
       const contadorSetores = grupo.querySelector('.contador-setores');
       const contadorCadeiras = grupo.querySelector('.contador-cadeiras-total');
@@ -3187,6 +3195,11 @@ function abortarReuniaoForcado() {
 
       if(cadeiraAtualAdicionarMembro) {
         cadeiraAtualAdicionarMembro.appendChild(membro);
+        
+        // Atualizar contador do poder público se for presidência
+        if(cadeiraAtualAdicionarMembro.id === 'presidenciaContainer') {
+          atualizarContadoresGrupo('poder-publico');
+        }
       }
 
       configurarDragAndDrop();
@@ -3198,7 +3211,15 @@ function abortarReuniaoForcado() {
       if(!modoEdicao) return;
       
       if(confirm('❓ Remover este membro?')) {
-        btn.closest('.membro-linha').remove();
+        const membro = btn.closest('.membro-linha');
+        const container = membro.parentElement;
+        membro.remove();
+        
+        // Atualizar contador do poder público se for presidência
+        if(container && container.id === 'presidenciaContainer') {
+          atualizarContadoresGrupo('poder-publico');
+        }
+        
         alert('✅ Membro removido!');
       }
     }
@@ -5874,7 +5895,47 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
     // SALVAR HTML
     // ============================================
     function salvarHTML() {
-        const htmlContent = document.documentElement.outerHTML;
+        // Coletar todos os dados do estado atual
+        const estadoAtual = {
+          versao: '2.2',
+          dataExportacao: new Date().toISOString(),
+          conselho: {
+            titulo: document.querySelector('.header h1')?.textContent || '',
+            subtitulo: document.querySelector('.header p')?.textContent || '',
+            proximaReuniao: {
+              data: document.getElementById('dataProximaReuniao')?.textContent || '',
+              local: document.getElementById('localProximaReuniao')?.textContent || ''
+            }
+          },
+          presidencia: extrairPresidencia(),
+          grupos: extrairGrupos(),
+          camaras: extrairCamaras(),
+          documentos: salvarEstruturaDocumentos()
+        };
+        
+        // Criar um elemento script para embutir os dados no HTML
+        const scriptEmbed = document.createElement('script');
+        scriptEmbed.id = 'embedded-state-data';
+        scriptEmbed.type = 'application/json';
+        scriptEmbed.textContent = JSON.stringify(estadoAtual);
+        
+        // Clonar o documento para não modificar o original
+        const htmlClone = document.documentElement.cloneNode(true);
+        
+        // Remover qualquer script de dados embarcados anterior
+        const scriptAntigo = htmlClone.querySelector('#embedded-state-data');
+        if(scriptAntigo) {
+          scriptAntigo.remove();
+        }
+        
+        // Adicionar o novo script com os dados ao final do body
+        const bodyClone = htmlClone.querySelector('body');
+        if(bodyClone) {
+          bodyClone.appendChild(scriptEmbed.cloneNode(true));
+        }
+        
+        // Gerar o HTML completo
+        const htmlContent = '<!DOCTYPE html>\n' + htmlClone.outerHTML;
         
         const blob = new Blob([htmlContent], { type: 'text/html' });
         const link = document.createElement('a');
@@ -5886,10 +5947,10 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
         link.click();
         
         alert('✅ HTML completo exportado com sucesso!\n\n📁 Arquivo: ' + link.download + 
-              '\n\n💡 Você pode:' +
-              '\n• Publicar este arquivo na web' +
-              '\n• Continuar editando normalmente' +
-              '\n• Carregar JSON posteriormente para atualizar os dados' +
+              '\n\n💡 O arquivo contém:' +
+              '\n• Todos os dados atuais (membros, cadeiras, documentos)' +
+              '\n• Estado completo embarcado' +
+              '\n• Ao reabrir, os dados serão carregados automaticamente' +
               '\n• Todas as funções de edição permanecem disponíveis');
     }
 
@@ -6005,6 +6066,18 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
     // INICIALIZAÇÃO
     // ============================================
     document.addEventListener('DOMContentLoaded', function() {
+      // Verificar se há dados embarcados no HTML e carregar automaticamente
+      const embeddedStateScript = document.getElementById('embedded-state-data');
+      if(embeddedStateScript) {
+        try {
+          const estadoEmbarcado = JSON.parse(embeddedStateScript.textContent);
+          aplicarDadosJSON(estadoEmbarcado);
+          console.log('✅ Dados embarcados carregados automaticamente');
+        } catch(err) {
+          console.error('❌ Erro ao carregar dados embarcados:', err);
+        }
+      }
+      
       configurarDragAndDrop();
       colapsarTudo();
       
