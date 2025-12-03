@@ -5951,7 +5951,7 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       const stateScriptTag = `
   <script id="embedded-app-state" type="application/json">
 ${escapedStateJSON}
-  </script>`;
+  <` + `/script>`;
       
       // Try to inject before closing body tag
       if (htmlContent.includes('</body>')) {
