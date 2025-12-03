@@ -3567,6 +3567,21 @@ function abortarReuniaoForcado() {
       document.getElementById('inputEmojiCamara').value = '';
       document.getElementById('previewEmojiCamara').style.display = 'none';
     }
+    
+    function atualizarPreviewEmoji() {
+      const nome = document.getElementById('inputNomeCamara')?.value || '';
+      const emoji = document.getElementById('inputEmojiCamara')?.value || '';
+      const preview = document.getElementById('previewEmojiCamara');
+      
+      if (nome || emoji) {
+        const nomeDisplay = nome || 'Nome da Câmara';
+        const emojiDisplay = emoji || '🏛️';
+        preview.textContent = `${emojiDisplay} ${nomeDisplay}`;
+        preview.style.display = 'block';
+      } else {
+        preview.style.display = 'none';
+      }
+    }
 
     function editarNomeCamara(btn) {
       if(!modoEdicao) return;
