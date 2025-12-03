@@ -2123,6 +2123,14 @@ function confirmarCriarCamara() {
       if(!grupo) return;
       
       const numSetores = grupo.querySelectorAll('.setor').length;
+      let numCadeiras = grupo.querySelectorAll('.cadeira').length;
+      
+      // Para o setor público, incluir a Presidência como Cadeira 1
+      if(grupoId === 'poder-publico') {
+        const presidenciaContainer = document.getElementById('presidenciaContainer');
+        if(presidenciaContainer && presidenciaContainer.querySelectorAll('.membro-linha:not(.vazio)').length > 0) {
+          numCadeiras += 1; // Adicionar a Presidência como Cadeira 1
+        }
       let numCadeiras;
       
       // Para poder público, incluir a presidência na contagem
@@ -3240,6 +3248,11 @@ function abortarReuniaoForcado() {
 
       if(cadeiraAtualAdicionarMembro) {
         cadeiraAtualAdicionarMembro.appendChild(membro);
+        
+        // Atualizar contador do poder público se for presidência
+        if(cadeiraAtualAdicionarMembro.id === 'presidenciaContainer') {
+          atualizarContadoresGrupo('poder-publico');
+        }
       }
 
       configurarDragAndDrop();
@@ -3251,7 +3264,15 @@ function abortarReuniaoForcado() {
       if(!modoEdicao) return;
       
       if(confirm('❓ Remover este membro?')) {
-        btn.closest('.membro-linha').remove();
+        const membro = btn.closest('.membro-linha');
+        const container = membro.parentElement;
+        membro.remove();
+        
+        // Atualizar contador do poder público se for presidência
+        if(container && container.id === 'presidenciaContainer') {
+          atualizarContadoresGrupo('poder-publico');
+        }
+        
         alert('✅ Membro removido!');
       }
     }
@@ -6001,6 +6022,65 @@ ${escapedStateJSON}
     }
     
     function salvarHTML() {
+        // Coletar todos os dados do estado atual
+        const estadoAtual = {
+          versao: '2.2',
+          dataExportacao: new Date().toISOString(),
+          conselho: {
+            titulo: document.querySelector('.header h1')?.textContent || '',
+            subtitulo: document.querySelector('.header p')?.textContent || '',
+            proximaReuniao: {
+              data: document.getElementById('dataProximaReuniao')?.textContent || '',
+              local: document.getElementById('localProximaReuniao')?.textContent || ''
+            }
+          },
+          presidencia: extrairPresidencia(),
+          grupos: extrairGrupos(),
+          camaras: extrairCamaras(),
+          documentos: salvarEstruturaDocumentos()
+        };
+        
+        // Criar um elemento script para embutir os dados no HTML
+        const scriptEmbed = document.createElement('script');
+        scriptEmbed.id = 'embedded-state-data';
+        scriptEmbed.type = 'application/json';
+        // JSON.stringify já escapa caracteres especiais apropriadamente
+        // Substituir </script> para evitar fechamento prematuro da tag
+        scriptEmbed.textContent = JSON.stringify(estadoAtual).replace(/<\/script>/gi, '<\\/script>');
+        
+        // Clonar o documento para não modificar o original
+        const htmlClone = document.documentElement.cloneNode(true);
+        
+        // Remover qualquer script de dados embarcados anterior
+        const scriptAntigo = htmlClone.querySelector('#embedded-state-data');
+        if(scriptAntigo) {
+          scriptAntigo.remove();
+        }
+        
+        // Adicionar o novo script com os dados ao final do body
+        const bodyClone = htmlClone.querySelector('body');
+        if(bodyClone) {
+          bodyClone.appendChild(scriptEmbed.cloneNode(true));
+        }
+        
+        // Gerar o HTML completo
+        const htmlContent = '<!DOCTYPE html>\n' + htmlClone.outerHTML;
+        
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        
+        const dataAtual = new Date().toISOString().slice(0, 10);
+        link.download = `conselho_completo_${dataAtual}.html`;
+        
+        link.click();
+        
+        alert('✅ HTML completo exportado com sucesso!\n\n📁 Arquivo: ' + link.download + 
+              '\n\n💡 O arquivo contém:' +
+              '\n• Todos os dados atuais (membros, cadeiras, documentos)' +
+              '\n• Estado completo embarcado' +
+              '\n• Ao reabrir, os dados serão carregados automaticamente' +
+              '\n• Todas as funções de edição permanecem disponíveis');
       // Call the new saveFullHTML function
       saveFullHTML();
     }
@@ -6143,6 +6223,23 @@ ${escapedStateJSON}
     }
     
     document.addEventListener('DOMContentLoaded', function() {
+      // Verificar se há dados embarcados no HTML e carregar automaticamente
+      const embeddedStateScript = document.getElementById('embedded-state-data');
+      if(embeddedStateScript && embeddedStateScript.type === 'application/json') {
+        try {
+          const estadoEmbarcado = JSON.parse(embeddedStateScript.textContent);
+          // Validar estrutura básica do JSON antes de aplicar
+          if(estadoEmbarcado && typeof estadoEmbarcado === 'object' && estadoEmbarcado.versao) {
+            aplicarDadosJSON(estadoEmbarcado);
+            console.log('✅ Dados embarcados carregados automaticamente');
+          } else {
+            console.warn('⚠️ Dados embarcados possuem estrutura inválida');
+          }
+        } catch(err) {
+          console.error('❌ Erro ao carregar dados embarcados:', err);
+        }
+      }
+      
       configurarDragAndDrop();
       colapsarTudo();
       
