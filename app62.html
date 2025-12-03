@@ -4,7 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sistema de Gestão de Conselho Consultivo</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" 
+          integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" 
+          crossorigin="anonymous" 
+          referrerpolicy="no-referrer"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
@@ -3548,7 +3551,7 @@ function abortarReuniaoForcado() {
 
     function gerarPDFConfirmacoes() {
       if (!window.jspdf || !window.jspdf.jsPDF) {
-        alert('⚠️ Biblioteca jsPDF não carregada. Verifique a conexão com a internet.');
+        alert('⚠️ Biblioteca jsPDF não carregada.\n\nPossíveis causas:\n- Sem conexão com internet\n- Bloqueio por extensão do navegador\n- Bloqueio por política de segurança (CSP)');
         return;
       }
 
@@ -3583,11 +3586,12 @@ function abortarReuniaoForcado() {
       doc.text(`Total: ${confirmados} Confirmados | ${justificados} Justificaram | ${naoVao} Não vão | ${pendentes} Pendentes`, 105, 38, { align: 'center' });
 
       // Lista de membros
+      const PDF_PAGE_HEIGHT_LIMIT = 270; // Limite para quebra de página
       let y = 50;
       doc.setFontSize(9);
 
       items.forEach(item => {
-        const nome = item.querySelector('.confirmacao-nome').textContent.trim();
+        const nome = item.querySelector('.confirmacao-nome')?.textContent.trim() || '';
         const entidade = item.querySelector('.confirmacao-entidade')?.textContent.replace('🏢 ', '') || '';
         const contatos = Array.from(item.querySelectorAll('.confirmacao-contato-item')).map(c => c.textContent).join(' | ');
         const observacoes = item.querySelector('.confirmacao-obs-textarea')?.value || '';
@@ -3599,7 +3603,7 @@ function abortarReuniaoForcado() {
         else if (status === 'nao_vai') statusTexto = '❌ Não vai';
 
         // Verificar se precisa de nova página
-        if (y > 270) {
+        if (y > PDF_PAGE_HEIGHT_LIMIT) {
           doc.addPage();
           y = 20;
         }
@@ -3620,7 +3624,7 @@ function abortarReuniaoForcado() {
         if (observacoes) {
           const linhasObs = doc.splitTextToSize(`Obs: ${observacoes}`, 190);
           linhasObs.forEach(linha => {
-            if (y > 270) {
+            if (y > PDF_PAGE_HEIGHT_LIMIT) {
               doc.addPage();
               y = 20;
             }
