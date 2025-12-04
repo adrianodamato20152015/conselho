@@ -220,9 +220,12 @@ const firebaseConfig = {
 
 1. Clique no menu **☰ MENU**
 2. Selecione **🔒 Editar**
-3. Digite a senha: `admin123`
+3. Digite a senha: `123` (⚠️ **ALTERE ESTA SENHA PARA PRODUÇÃO!**)
 4. Faça suas alterações
 5. Clique em **💾 Finalizar Edição** para salvar no Firebase
+
+> **⚠️ SEGURANÇA CRÍTICA**: A senha padrão `123` é extremamente fraca e serve APENAS para testes.
+> **VOCÊ DEVE ALTERÁ-LA antes de usar em produção!** Veja instruções na seção "Recomendações de Segurança" abaixo.
 
 ### Sincronização em Tempo Real
 
@@ -262,15 +265,39 @@ const firebaseConfig = {
 
 ### Recomendações de Segurança
 
-1. **Use senhas fortes** com pelo menos 8 caracteres para contas Firebase
-2. **Altere a senha do modo de edição**: A senha padrão `admin123` é apenas demonstrativa
-   - Procure pela função `verificarSenha()` no código
-   - Substitua `'admin123'` por uma senha forte de sua escolha
+1. **🚨 CRÍTICO - Altere a senha do modo de edição IMEDIATAMENTE**:
+   - A senha padrão `123` é EXTREMAMENTE FRACA e DEVE ser alterada
+   - Passos para alterar:
+     1. Abra `firebaseconselho.html` em um editor de texto
+     2. Procure pela função `verificarSenha()` (próximo da linha 3542)
+     3. Encontre: `if(senha === '123') {`
+     4. Substitua por: `if(senha === 'SuaSenhaForteAqui!') {`
+     5. Use uma senha forte: mínimo 12 caracteres, maiúsculas, minúsculas, números e símbolos
+     6. Exemplo: `'C0n$elh0!S3gur0@2024'`
+   - **NUNCA use a senha padrão em produção!**
+
+2. **Use senhas fortes** com pelo menos 12 caracteres para contas Firebase
+   - Misture maiúsculas, minúsculas, números e símbolos
+   - Evite palavras do dicionário
+   - Use um gerenciador de senhas
+
 3. **Não compartilhe** suas credenciais de login
+
 4. **Faça backups regulares** dos dados
+   - Use o menu **💾 Exportar Backup JSON** semanalmente
+   - Armazene backups em local seguro
+
 5. **Configure regras mais restritivas** no Firestore para produção
+   - Limite acesso por email
+   - Implemente controle de permissões por função (admin, editor, visualizador)
+
 6. **Considere habilitar 2FA** nas contas do Firebase Console
-7. **Mantenha as credenciais do Firebase privadas** - não compartilhe o arquivo HTML com as credenciais em repositórios públicos
+   - Proteção extra para acesso ao console administrativo
+
+7. **Mantenha as credenciais do Firebase privadas**
+   - Não compartilhe o arquivo HTML com credenciais em repositórios públicos
+   - Use variáveis de ambiente em produção
+   - Considere criar um backend intermediário para maior segurança
 
 ### Regras de Firestore Mais Restritivas (Opcional)
 

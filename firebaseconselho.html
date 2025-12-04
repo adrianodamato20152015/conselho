@@ -3539,8 +3539,13 @@ function confirmarCriarCamara() {
       document.getElementById('inputSenha').focus();
     }
 
+    // ⚠️ SEGURANÇA: Altere esta senha para uso em produção!
+    // Esta senha simples ('123') é apenas para demonstração e desenvolvimento.
+    // Para ambientes de produção, substitua por uma senha forte ou implemente
+    // um sistema de autenticação mais robusto.
     function verificarSenha() {
       const senha = document.getElementById('inputSenha').value;
+      // TODO: ALTERAR ESTA SENHA PARA PRODUÇÃO!
       if(senha === '123') {
         fecharModal('modalSenha');
         ativarModoEdicao();
