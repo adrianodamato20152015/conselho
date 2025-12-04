@@ -77,9 +77,12 @@ service firebase.storage {
 ### Adicionar Dados
 
 1. **☰ MENU** → **🔒 Editar**
-2. Senha: `admin123`
+2. Senha: `admin123` (⚠️ **Importante**: Altere esta senha no código para maior segurança!)
 3. Preencha informações
 4. **💾 Finalizar Edição**
+
+> **Nota de Segurança**: A senha padrão `admin123` é apenas para fins de demonstração. 
+> Para uso em produção, procure pela função `verificarSenha()` no código e altere para uma senha forte.
 
 ### Convidar Usuários
 

@@ -2540,26 +2540,79 @@
     let currentConselhoId = 'conselho-principal'; // ID do conselho atual
     let unsubscribeListeners = []; // Array para armazenar listeners de sincronização
     
-    try {
-      firebaseApp = firebase.initializeApp(firebaseConfig);
-      auth = firebase.auth();
-      db = firebase.firestore();
-      storage = firebase.storage();
+    // Validar configuração do Firebase
+    function validateFirebaseConfig() {
+      const requiredFields = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
+      const placeholderValues = ['SUA_API_KEY_AQUI', 'seu-projeto.firebaseapp.com', 'seu-projeto-id', 'seu-projeto.appspot.com', '123456789', 'seu-app-id'];
       
-      // Habilitar persistência offline
-      db.enablePersistence({ synchronizeTabs: true })
-        .catch((err) => {
-          if (err.code === 'failed-precondition') {
-            console.warn('Persistência offline não disponível: múltiplas abas abertas');
-          } else if (err.code === 'unimplemented') {
-            console.warn('Persistência offline não suportada neste navegador');
+      for (let i = 0; i < requiredFields.length; i++) {
+        const field = requiredFields[i];
+        const value = firebaseConfig[field];
+        
+        if (!value || value === placeholderValues[i] || value.includes('SUA_') || value.includes('seu-')) {
+          console.error(`❌ Configuração incompleta: ${field} ainda contém valor placeholder`);
+          
+          // Show user-friendly error message
+          const authScreen = document.getElementById('authScreen');
+          if (authScreen) {
+            const errorHTML = `
+              <div style="text-align: center; padding: 40px;">
+                <h2 style="color: #ff6b6b; margin-bottom: 20px;">⚠️ Configuração Pendente</h2>
+                <p style="margin-bottom: 15px; line-height: 1.6;">
+                  As credenciais do Firebase ainda não foram configuradas.<br>
+                  Este sistema requer um projeto Firebase configurado.
+                </p>
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: left;">
+                  <p style="font-weight: bold; margin-bottom: 10px;">📋 Siga estes passos:</p>
+                  <ol style="line-height: 1.8; padding-left: 20px;">
+                    <li>Leia o arquivo <strong>QUICKSTART_FIREBASE.md</strong></li>
+                    <li>Crie um projeto no <a href="https://console.firebase.google.com" target="_blank" style="color: #667eea;">Firebase Console</a></li>
+                    <li>Configure Authentication, Firestore e Storage</li>
+                    <li>Copie suas credenciais</li>
+                    <li>Cole no código (procure por "firebaseConfig")</li>
+                  </ol>
+                </div>
+                <p style="color: #666; font-size: 0.9em;">
+                  <strong>Campo pendente:</strong> ${field}<br>
+                  <strong>Valor atual:</strong> ${value}
+                </p>
+              </div>
+            `;
+            authScreen.querySelector('.auth-container').innerHTML = errorHTML;
           }
-        });
-      
-      console.log('✅ Firebase inicializado com sucesso');
-    } catch (error) {
-      console.error('❌ Erro ao inicializar Firebase:', error);
-      console.log('⚠️ Verifique se você configurou as credenciais do Firebase corretamente');
+          
+          return false;
+        }
+      }
+      return true;
+    }
+    
+    // Tentar inicializar Firebase apenas se configuração estiver completa
+    if (validateFirebaseConfig()) {
+      try {
+        firebaseApp = firebase.initializeApp(firebaseConfig);
+        auth = firebase.auth();
+        db = firebase.firestore();
+        storage = firebase.storage();
+        
+        // Habilitar persistência offline
+        db.enablePersistence({ synchronizeTabs: true })
+          .catch((err) => {
+            if (err.code === 'failed-precondition') {
+              console.warn('Persistência offline não disponível: múltiplas abas abertas');
+            } else if (err.code === 'unimplemented') {
+              console.warn('Persistência offline não suportada neste navegador');
+            }
+          });
+        
+        console.log('✅ Firebase inicializado com sucesso');
+      } catch (error) {
+        console.error('❌ Erro ao inicializar Firebase:', error);
+        console.log('⚠️ Verifique se você configurou as credenciais do Firebase corretamente');
+        alert('❌ Erro ao conectar com Firebase.\n\nVerifique:\n1. Se as credenciais estão corretas\n2. Se há conexão com internet\n3. Se os serviços estão ativos no Firebase Console\n\nDetalhes no Console (F12)');
+      }
+    } else {
+      console.error('❌ Firebase não foi inicializado devido a configuração incompleta');
     }
     
     // ============================================

@@ -262,11 +262,15 @@ const firebaseConfig = {
 
 ### Recomendações de Segurança
 
-1. **Use senhas fortes** com pelo menos 8 caracteres
-2. **Não compartilhe** suas credenciais de login
-3. **Faça backups regulares** dos dados
-4. **Configure regras mais restritivas** no Firestore para produção
-5. **Considere habilitar 2FA** nas contas do Firebase Console
+1. **Use senhas fortes** com pelo menos 8 caracteres para contas Firebase
+2. **Altere a senha do modo de edição**: A senha padrão `admin123` é apenas demonstrativa
+   - Procure pela função `verificarSenha()` no código
+   - Substitua `'admin123'` por uma senha forte de sua escolha
+3. **Não compartilhe** suas credenciais de login
+4. **Faça backups regulares** dos dados
+5. **Configure regras mais restritivas** no Firestore para produção
+6. **Considere habilitar 2FA** nas contas do Firebase Console
+7. **Mantenha as credenciais do Firebase privadas** - não compartilhe o arquivo HTML com as credenciais em repositórios públicos
 
 ### Regras de Firestore Mais Restritivas (Opcional)
 
