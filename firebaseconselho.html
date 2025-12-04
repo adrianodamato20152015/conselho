@@ -7148,16 +7148,38 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       return camaras;
     }
 
-    function carregarJSON(input) {
+    async function carregarJSON(input) {
       const file = input.files[0];
       if(!file) return;
       
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = async function(e) {
         try {
           const dados = JSON.parse(e.target.result);
           aplicarDadosJSON(dados);
-          alert('✅ JSON carregado com sucesso!');
+          
+          // If authenticated, sync to Firebase
+          if (currentUser && db) {
+            if (confirm('✅ JSON carregado com sucesso!\n\n🔄 Deseja sincronizar estes dados com o Firebase?')) {
+              updateSyncStatus('syncing', 'Sincronizando...');
+              try {
+                await Promise.all([
+                  saveConselhoInfoToFirebase(),
+                  savePresidenciaToFirebase(),
+                  saveGruposToFirebase(),
+                  saveCamarasToFirebase()
+                ]);
+                updateSyncStatus('online', 'Online');
+                alert('✅ Dados sincronizados com o Firebase!');
+              } catch (error) {
+                console.error('Erro ao sincronizar:', error);
+                updateSyncStatus('error', 'Erro ao sincronizar');
+                setTimeout(() => updateSyncStatus('online', 'Online'), 3000);
+              }
+            }
+          } else {
+            alert('✅ JSON carregado com sucesso!');
+          }
         } catch(err) {
           alert('❌ Erro ao carregar JSON: ' + err.message);
         }
@@ -7431,7 +7453,7 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       return membro;
     }
 
-    function limparConselho() {
+    async function limparConselho() {
       if(!confirm('⚠️ ATENÇÃO!\n\nIsso irá APAGAR TODOS OS DADOS do conselho!\n\nDeseja continuar?')) {
         return;
       }
@@ -7452,6 +7474,29 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       
       document.getElementById('dataProximaReuniao').textContent = '--/--/----';
       document.getElementById('localProximaReuniao').textContent = '---';
+      
+      // Clear Firebase data if authenticated
+      if (currentUser && db) {
+        updateSyncStatus('syncing', 'Limpando dados...');
+        try {
+          const batch = db.batch();
+          const conselhoRef = db.collection('conselhos').doc(currentConselhoId);
+          
+          // Delete all subcollections
+          const collections = ['info', 'presidencia', 'grupos', 'camaras', 'documentos'];
+          for (const col of collections) {
+            const snapshot = await conselhoRef.collection(col).get();
+            snapshot.forEach(doc => batch.delete(doc.ref));
+          }
+          
+          await batch.commit();
+          updateSyncStatus('online', 'Online');
+        } catch (error) {
+          console.error('Erro ao limpar Firebase:', error);
+          updateSyncStatus('error', 'Erro ao limpar');
+          setTimeout(() => updateSyncStatus('online', 'Online'), 3000);
+        }
+      }
       
       toggleMenu();
       alert('✅ Conselho limpo com sucesso!\n\nAgora você tem um sistema vazio pronto para cadastrar novos dados.');
