@@ -1202,17 +1202,6 @@
       color: white;
     }
     
-    .btn-reorder-doc {
-      background: #667eea;
-      color: white;
-      padding: 6px 10px;
-      font-size: 1em;
-    }
-    
-    .btn-reorder-doc:hover {
-      background: #5568d3;
-    }
-    
     .pasta-conteudo {
       max-height: 0;
       overflow: hidden;
@@ -6510,8 +6499,6 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       const acoes = document.createElement('div');
       acoes.className = 'pasta-acoes';
       acoes.innerHTML = `
-        <button class="btn-doc-action btn-reorder-doc" onclick="event.stopPropagation(); moverItemCima('${pasta.id}', '${pastaParenteId || ''}')" aria-label="Mover para cima">↑</button>
-        <button class="btn-doc-action btn-reorder-doc" onclick="event.stopPropagation(); moverItemBaixo('${pasta.id}', '${pastaParenteId || ''}')" aria-label="Mover para baixo">↓</button>
         <button class="btn-doc-action btn-add-item" onclick="event.stopPropagation(); abrirModalAdicionarItem('${pasta.id}')">➕ Adicionar</button>
         <button class="btn-doc-action btn-editar-doc" onclick="event.stopPropagation(); editarPasta('${pasta.id}')">✏️</button>
         <button class="btn-doc-action btn-remover-doc" onclick="event.stopPropagation(); removerItem('${pasta.id}')">🗑️</button>
@@ -6559,8 +6546,6 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       const acoes = document.createElement('div');
       acoes.className = 'documento-acoes';
       acoes.innerHTML = `
-        <button class="btn-doc-action btn-reorder-doc" onclick="event.stopPropagation(); moverItemCima('${doc.id}', '${pastaParenteId || ''}')" aria-label="Mover para cima">↑</button>
-        <button class="btn-doc-action btn-reorder-doc" onclick="event.stopPropagation(); moverItemBaixo('${doc.id}', '${pastaParenteId || ''}')" aria-label="Mover para baixo">↓</button>
         <button class="btn-doc-action btn-editar-doc" onclick="event.stopPropagation(); editarDocumento('${doc.id}', '${pastaParenteId || ''}')">✏️</button>
         <button class="btn-doc-action btn-remover-doc" onclick="event.stopPropagation(); removerItem('${doc.id}', '${pastaParenteId || ''}')">🗑️</button>
       `;
@@ -6798,66 +6783,6 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       lista.forEach((item, i) => {
         item.ordem = i;
       });
-    }
-
-    function moverItemCima(itemId, pastaParenteId) {
-      if(!modoEdicao) return;
-      
-      let lista;
-      if(pastaParenteId) {
-        const pastaParente = encontrarItemPorId(documentosData.estrutura, pastaParenteId);
-        if(!pastaParente) return;
-        lista = pastaParente.filhos;
-      } else {
-        lista = documentosData.estrutura;
-      }
-      
-      // Encontrar índice do item
-      const index = lista.findIndex(item => item.id === itemId);
-      if(index < 0) return; // Não encontrado
-      
-      if(index === 0) {
-        // Já está no topo - não fazer nada
-        return;
-      }
-      
-      // Trocar com o item acima
-      [lista[index - 1], lista[index]] = [lista[index], lista[index - 1]];
-      
-      // Atualizar ordens
-      atualizarOrdensDocumentos(lista);
-      
-      renderizarDocumentos();
-    }
-
-    function moverItemBaixo(itemId, pastaParenteId) {
-      if(!modoEdicao) return;
-      
-      let lista;
-      if(pastaParenteId) {
-        const pastaParente = encontrarItemPorId(documentosData.estrutura, pastaParenteId);
-        if(!pastaParente) return;
-        lista = pastaParente.filhos;
-      } else {
-        lista = documentosData.estrutura;
-      }
-      
-      // Encontrar índice do item
-      const index = lista.findIndex(item => item.id === itemId);
-      if(index < 0) return; // Não encontrado
-      
-      if(index >= lista.length - 1) {
-        // Já está no final - não fazer nada
-        return;
-      }
-      
-      // Trocar com o item abaixo
-      [lista[index], lista[index + 1]] = [lista[index + 1], lista[index]];
-      
-      // Atualizar ordens
-      atualizarOrdensDocumentos(lista);
-      
-      renderizarDocumentos();
     }
 
     function salvarEstruturaDocumentos() {
