@@ -1202,6 +1202,17 @@
       color: white;
     }
     
+    .btn-reorder-doc {
+      background: #667eea;
+      color: white;
+      padding: 6px 10px;
+      font-size: 1em;
+    }
+    
+    .btn-reorder-doc:hover {
+      background: #5568d3;
+    }
+    
     .pasta-conteudo {
       max-height: 0;
       overflow: hidden;
@@ -4705,10 +4716,26 @@ function abrirModalCriarCamara() {
         const concluida = ativ.dataset.concluida === 'true';
         const prazo = ativ.dataset.prazo || '';
         
-        const camara = ativ.closest('.camara');
-        const nomeCamara = camara ? camara.querySelector('.camara-nome')?.textContent : 'Geral';
+        // Verificar se a atividade é de um GT (está dentro de .gt-atividades-internas)
+        const isAtividadeGT = ativ.closest('.gt-atividades-internas') !== null;
         
-        atividades.push({ titulo, info, resultado, concluida, prazo, nomeCamara });
+        const camara = ativ.closest('.camara');
+        let nomeCamara = 'Geral';
+        let nomeGT = '';
+        
+        if (camara) {
+          nomeCamara = camara.querySelector('.camara-nome')?.textContent || 'Geral';
+          
+          // Se for atividade de GT, pegar também o nome do GT
+          if (isAtividadeGT) {
+            const gt = ativ.closest('.gt-card');
+            if (gt) {
+              nomeGT = gt.querySelector('.gt-titulo')?.textContent || '';
+            }
+          }
+        }
+        
+        atividades.push({ titulo, info, resultado, concluida, prazo, nomeCamara, nomeGT, isAtividadeGT });
       });
       
       if(atividades.length === 0) {
@@ -4718,14 +4745,26 @@ function abrirModalCriarCamara() {
       
       atividades.forEach(a => {
         const card = document.createElement('div');
+        
+        // Atividades de GT têm fundo verde, atividades de Câmara têm fundo azul
+        const corFundo = a.isAtividadeGT 
+          ? 'linear-gradient(135deg, #d3f9d8 0%, #b2f2bb 100%)'
+          : 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)';
+        const corBorda = a.isAtividadeGT ? '#51cf66' : '#2196f3';
+        
         card.style.cssText = `
-          background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); 
+          background: ${corFundo}; 
           border-radius: 8px; padding: 10px; margin-bottom: 8px; 
-          border-left: 3px solid #2196f3;
+          border-left: 3px solid ${corBorda};
         `;
+        
+        const identificacao = a.isAtividadeGT 
+          ? `${a.info} | 🏛️ ${a.nomeCamara} | 📋 GT: ${a.nomeGT}`
+          : `${a.info} | 🏛️ ${a.nomeCamara}`;
+        
         card.innerHTML = `
           <div style="font-weight: bold; color: #2c3e50; margin-bottom: 4px; font-size: 0.85em;">${a.titulo}</div>
-          <div style="font-size: 0.75em; color: #495057; margin-bottom: 4px;">${a.info} | 🏛️ ${a.nomeCamara}</div>
+          <div style="font-size: 0.75em; color: #495057; margin-bottom: 4px;">${identificacao}</div>
           ${a.resultado ? `<div style="background: white; padding: 6px; border-radius: 4px; font-size: 0.75em; color: #2c3e50; margin-top: 6px; border-left: 3px solid #667eea;">📌 ${a.resultado}</div>` : ''}
           ${a.resultado ? `<div style="margin-top: 6px; padding: 4px 8px; border-radius: 5px; font-size: 0.7em; font-weight: bold; display: inline-block; background: ${a.concluida ? '#2ecc71' : '#ffd43b'}; color: ${a.concluida ? 'white' : '#333'};">${a.concluida ? '✅ CONCLUÍDA' : '⏳ NÃO CONCLUÍDA'}</div>` : '<div style="margin-top: 6px; padding: 4px 8px; border-radius: 5px; font-size: 0.7em; font-weight: bold; display: inline-block; background: #ffd43b; color: #333;">🔓 ABERTA</div>'}
         `;
@@ -6471,6 +6510,8 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       const acoes = document.createElement('div');
       acoes.className = 'pasta-acoes';
       acoes.innerHTML = `
+        <button class="btn-doc-action btn-reorder-doc" onclick="event.stopPropagation(); moverItemCima('${pasta.id}', '${pastaParenteId || ''}')">↑</button>
+        <button class="btn-doc-action btn-reorder-doc" onclick="event.stopPropagation(); moverItemBaixo('${pasta.id}', '${pastaParenteId || ''}')">↓</button>
         <button class="btn-doc-action btn-add-item" onclick="event.stopPropagation(); abrirModalAdicionarItem('${pasta.id}')">➕ Adicionar</button>
         <button class="btn-doc-action btn-editar-doc" onclick="event.stopPropagation(); editarPasta('${pasta.id}')">✏️</button>
         <button class="btn-doc-action btn-remover-doc" onclick="event.stopPropagation(); removerItem('${pasta.id}')">🗑️</button>
@@ -6518,6 +6559,8 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       const acoes = document.createElement('div');
       acoes.className = 'documento-acoes';
       acoes.innerHTML = `
+        <button class="btn-doc-action btn-reorder-doc" onclick="event.stopPropagation(); moverItemCima('${doc.id}', '${pastaParenteId || ''}')">↑</button>
+        <button class="btn-doc-action btn-reorder-doc" onclick="event.stopPropagation(); moverItemBaixo('${doc.id}', '${pastaParenteId || ''}')">↓</button>
         <button class="btn-doc-action btn-editar-doc" onclick="event.stopPropagation(); editarDocumento('${doc.id}', '${pastaParenteId || ''}')">✏️</button>
         <button class="btn-doc-action btn-remover-doc" onclick="event.stopPropagation(); removerItem('${doc.id}', '${pastaParenteId || ''}')">🗑️</button>
       `;
@@ -6748,6 +6791,60 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       }
       
       alert('✅ Item removido!');
+      renderizarDocumentos();
+    }
+
+    function moverItemCima(itemId, pastaParenteId) {
+      if(!modoEdicao) return;
+      
+      let lista;
+      if(pastaParenteId) {
+        const pastaParente = encontrarItemPorId(documentosData.estrutura, pastaParenteId);
+        if(!pastaParente) return;
+        lista = pastaParente.filhos;
+      } else {
+        lista = documentosData.estrutura;
+      }
+      
+      // Encontrar índice do item
+      const index = lista.findIndex(item => item.id === itemId);
+      if(index <= 0) return; // Já está no topo ou não encontrado
+      
+      // Trocar com o item acima
+      [lista[index - 1], lista[index]] = [lista[index], lista[index - 1]];
+      
+      // Atualizar ordens
+      lista.forEach((item, i) => {
+        item.ordem = i;
+      });
+      
+      renderizarDocumentos();
+    }
+
+    function moverItemBaixo(itemId, pastaParenteId) {
+      if(!modoEdicao) return;
+      
+      let lista;
+      if(pastaParenteId) {
+        const pastaParente = encontrarItemPorId(documentosData.estrutura, pastaParenteId);
+        if(!pastaParente) return;
+        lista = pastaParente.filhos;
+      } else {
+        lista = documentosData.estrutura;
+      }
+      
+      // Encontrar índice do item
+      const index = lista.findIndex(item => item.id === itemId);
+      if(index < 0 || index >= lista.length - 1) return; // Já está no final ou não encontrado
+      
+      // Trocar com o item abaixo
+      [lista[index], lista[index + 1]] = [lista[index + 1], lista[index]];
+      
+      // Atualizar ordens
+      lista.forEach((item, i) => {
+        item.ordem = i;
+      });
+      
       renderizarDocumentos();
     }
 
