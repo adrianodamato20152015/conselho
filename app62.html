@@ -4698,33 +4698,54 @@ function abrirModalCriarCamara() {
       
       const atividades = [];
       
-      document.querySelectorAll('.atividade-card').forEach(ativ => {
-        const titulo = ativ.querySelector('.atividade-titulo')?.textContent || '';
-        const info = ativ.querySelector('.atividade-info')?.textContent || '';
-        const resultado = ativ.querySelector('.atividade-resultado')?.textContent.replace('📌 ', '') || '';
-        const concluida = ativ.dataset.concluida === 'true';
-        const prazo = ativ.dataset.prazo || '';
+      // Percorrer todas as Câmaras Temáticas
+      document.querySelectorAll('.camara').forEach(camara => {
+        const nomeCamara = camara.querySelector('.camara-nome')?.textContent || 'Geral';
         
-        // Verificar se a atividade é de um GT (está dentro de .gt-atividades-internas)
-        const isAtividadeGT = ativ.closest('.gt-atividades-internas') !== null;
-        
-        const camara = ativ.closest('.camara');
-        let nomeCamara = 'Geral';
-        let nomeGT = '';
-        
-        if (camara) {
-          nomeCamara = camara.querySelector('.camara-nome')?.textContent || 'Geral';
+        // 1. Coletar atividades diretas da Câmara Temática
+        camara.querySelectorAll('.camara-atividades .atividade-card').forEach(ativ => {
+          const titulo = ativ.querySelector('.atividade-titulo')?.textContent || '';
+          const info = ativ.querySelector('.atividade-info')?.textContent || '';
+          const resultado = ativ.querySelector('.atividade-resultado')?.textContent.replace('📌 ', '') || '';
+          const concluida = ativ.dataset.concluida === 'true';
+          const prazo = ativ.dataset.prazo || '';
           
-          // Se for atividade de GT, pegar também o nome do GT
-          if (isAtividadeGT) {
-            const gt = ativ.closest('.gt-card');
-            if (gt) {
-              nomeGT = gt.querySelector('.gt-titulo')?.textContent || '';
-            }
-          }
-        }
+          atividades.push({ 
+            titulo, 
+            info, 
+            resultado, 
+            concluida, 
+            prazo, 
+            nomeCamara, 
+            nomeGT: '', 
+            isAtividadeGT: false 
+          });
+        });
         
-        atividades.push({ titulo, info, resultado, concluida, prazo, nomeCamara, nomeGT, isAtividadeGT });
+        // 2. Percorrer todos os GTs dentro desta Câmara Temática
+        camara.querySelectorAll('.gt-card').forEach(gt => {
+          const nomeGT = gt.querySelector('.gt-titulo')?.textContent || '';
+          
+          // 3. Coletar atividades de cada GT
+          gt.querySelectorAll('.gt-atividades-internas .atividade-card').forEach(ativ => {
+            const titulo = ativ.querySelector('.atividade-titulo')?.textContent || '';
+            const info = ativ.querySelector('.atividade-info')?.textContent || '';
+            const resultado = ativ.querySelector('.atividade-resultado')?.textContent.replace('📌 ', '') || '';
+            const concluida = ativ.dataset.concluida === 'true';
+            const prazo = ativ.dataset.prazo || '';
+            
+            atividades.push({ 
+              titulo, 
+              info, 
+              resultado, 
+              concluida, 
+              prazo, 
+              nomeCamara, 
+              nomeGT, 
+              isAtividadeGT: true 
+            });
+          });
+        });
       });
       
       if(atividades.length === 0) {
@@ -6681,6 +6702,7 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       
       fecharModal('modalCriarPasta');
       renderizarDocumentos();
+      salvarDados();
     }
 
     function confirmarAdicionarDocumento() {
@@ -6734,6 +6756,7 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       
       fecharModal('modalAdicionarDocumento');
       renderizarDocumentos();
+      salvarDados();
     }
 
     function encontrarItemPorId(estrutura, id) {
@@ -6777,6 +6800,7 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       
       alert('✅ Item removido!');
       renderizarDocumentos();
+      salvarDados();
     }
 
     function atualizarOrdensDocumentos(lista) {
@@ -6796,8 +6820,41 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       }
     }
 
+    // ==========================================
+    // PERSISTÊNCIA EM LOCALSTORAGE
+    // ==========================================
+    
+    function salvarDados() {
+      try {
+        // Salvar estrutura de documentos no localStorage
+        localStorage.setItem('conselho_documentos', JSON.stringify(documentosData));
+        console.log('💾 Dados salvos no localStorage');
+      } catch (e) {
+        console.error('❌ Erro ao salvar no localStorage:', e);
+      }
+    }
+    
+    function carregarDadosLocalStorage() {
+      try {
+        const dadosSalvos = localStorage.getItem('conselho_documentos');
+        if (dadosSalvos) {
+          documentosData = JSON.parse(dadosSalvos);
+          console.log('📂 Dados carregados do localStorage');
+          return true;
+        }
+      } catch (e) {
+        console.error('❌ Erro ao carregar do localStorage:', e);
+      }
+      return false;
+    }
+
     function carregarDocumentosEmbarcados() {
-      // Tenta carregar dados embarcados do script no HTML
+      // Primeiro tentar carregar do localStorage (tem prioridade)
+      if (carregarDadosLocalStorage()) {
+        return;
+      }
+      
+      // Se não houver dados no localStorage, tentar carregar dados embarcados do script no HTML
       const scriptEmbarcado = document.getElementById('dados-documentos-embarcados');
       if (scriptEmbarcado && scriptEmbarcado.textContent) {
         try {
@@ -6805,6 +6862,8 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
           if (dados && dados.documentos && dados.documentos.estrutura && dados.documentos.estrutura.length > 0) {
             console.log('📄 Carregando documentos embarcados...', dados.documentos);
             documentosData = dados.documentos;
+            // Salvar no localStorage para futuras edições
+            salvarDados();
             // Não renderizar aqui, será feito quando o usuário abrir a tela de documentos
           }
         } catch (e) {
@@ -7032,6 +7091,9 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
           });
         }
       });
+      
+      // Salvar alterações no localStorage
+      salvarDados();
     }
 
   
