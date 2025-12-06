@@ -6510,8 +6510,8 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       const acoes = document.createElement('div');
       acoes.className = 'pasta-acoes';
       acoes.innerHTML = `
-        <button class="btn-doc-action btn-reorder-doc" onclick="event.stopPropagation(); moverItemCima('${pasta.id}', '${pastaParenteId || ''}')">↑</button>
-        <button class="btn-doc-action btn-reorder-doc" onclick="event.stopPropagation(); moverItemBaixo('${pasta.id}', '${pastaParenteId || ''}')">↓</button>
+        <button class="btn-doc-action btn-reorder-doc" onclick="event.stopPropagation(); moverItemCima('${pasta.id}', '${pastaParenteId || ''}')" aria-label="Mover para cima">↑</button>
+        <button class="btn-doc-action btn-reorder-doc" onclick="event.stopPropagation(); moverItemBaixo('${pasta.id}', '${pastaParenteId || ''}')" aria-label="Mover para baixo">↓</button>
         <button class="btn-doc-action btn-add-item" onclick="event.stopPropagation(); abrirModalAdicionarItem('${pasta.id}')">➕ Adicionar</button>
         <button class="btn-doc-action btn-editar-doc" onclick="event.stopPropagation(); editarPasta('${pasta.id}')">✏️</button>
         <button class="btn-doc-action btn-remover-doc" onclick="event.stopPropagation(); removerItem('${pasta.id}')">🗑️</button>
@@ -6559,8 +6559,8 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       const acoes = document.createElement('div');
       acoes.className = 'documento-acoes';
       acoes.innerHTML = `
-        <button class="btn-doc-action btn-reorder-doc" onclick="event.stopPropagation(); moverItemCima('${doc.id}', '${pastaParenteId || ''}')">↑</button>
-        <button class="btn-doc-action btn-reorder-doc" onclick="event.stopPropagation(); moverItemBaixo('${doc.id}', '${pastaParenteId || ''}')">↓</button>
+        <button class="btn-doc-action btn-reorder-doc" onclick="event.stopPropagation(); moverItemCima('${doc.id}', '${pastaParenteId || ''}')" aria-label="Mover para cima">↑</button>
+        <button class="btn-doc-action btn-reorder-doc" onclick="event.stopPropagation(); moverItemBaixo('${doc.id}', '${pastaParenteId || ''}')" aria-label="Mover para baixo">↓</button>
         <button class="btn-doc-action btn-editar-doc" onclick="event.stopPropagation(); editarDocumento('${doc.id}', '${pastaParenteId || ''}')">✏️</button>
         <button class="btn-doc-action btn-remover-doc" onclick="event.stopPropagation(); removerItem('${doc.id}', '${pastaParenteId || ''}')">🗑️</button>
       `;
@@ -6794,6 +6794,12 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       renderizarDocumentos();
     }
 
+    function atualizarOrdensDocumentos(lista) {
+      lista.forEach((item, i) => {
+        item.ordem = i;
+      });
+    }
+
     function moverItemCima(itemId, pastaParenteId) {
       if(!modoEdicao) return;
       
@@ -6808,15 +6814,18 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       
       // Encontrar índice do item
       const index = lista.findIndex(item => item.id === itemId);
-      if(index <= 0) return; // Já está no topo ou não encontrado
+      if(index < 0) return; // Não encontrado
+      
+      if(index === 0) {
+        // Já está no topo - feedback visual
+        return;
+      }
       
       // Trocar com o item acima
       [lista[index - 1], lista[index]] = [lista[index], lista[index - 1]];
       
       // Atualizar ordens
-      lista.forEach((item, i) => {
-        item.ordem = i;
-      });
+      atualizarOrdensDocumentos(lista);
       
       renderizarDocumentos();
     }
@@ -6835,15 +6844,18 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       
       // Encontrar índice do item
       const index = lista.findIndex(item => item.id === itemId);
-      if(index < 0 || index >= lista.length - 1) return; // Já está no final ou não encontrado
+      if(index < 0) return; // Não encontrado
+      
+      if(index >= lista.length - 1) {
+        // Já está no final - feedback visual
+        return;
+      }
       
       // Trocar com o item abaixo
       [lista[index], lista[index + 1]] = [lista[index + 1], lista[index]];
       
       // Atualizar ordens
-      lista.forEach((item, i) => {
-        item.ordem = i;
-      });
+      atualizarOrdensDocumentos(lista);
       
       renderizarDocumentos();
     }
