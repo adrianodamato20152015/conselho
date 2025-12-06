@@ -2314,6 +2314,17 @@ function confirmarCriarCamara() {
         membro.draggable = false;
         membro.style.cursor = '';
       });
+      
+      // Desabilitar drag & drop para documentos e pastas
+      document.querySelectorAll('.pasta-item').forEach(pasta => {
+        pasta.draggable = false;
+        pasta.style.cursor = '';
+      });
+      
+      document.querySelectorAll('.documento-item').forEach(doc => {
+        doc.draggable = false;
+        doc.style.cursor = '';
+      });
 
       fecharModal('modalFinalizarEdicao');
       alert('✅ Modo de edição finalizado!');
@@ -4177,7 +4188,7 @@ function abortarReuniaoForcado() {
       document.getElementById('inputTituloGT').value = '';
       document.getElementById('inputObjetivoGT').value = '';
       document.getElementById('inputResponsavelGT').value = '';
-      document.getElementById('inputComponentesGTContainer').innerHTML = '';
+      document.getElementById('componentesGTContainer').innerHTML = '';
       componentesGTAtual = [];
       document.getElementById('inputResultadoGT').value = '';
       
