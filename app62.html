@@ -5940,6 +5940,11 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
         try {
           const dados = JSON.parse(e.target.result);
           aplicarDadosJSON(dados);
+          // Fechar o menu dropdown após carregar o JSON com sucesso
+          const menuDropdown = document.getElementById('menuDropdown');
+          if (menuDropdown) {
+            menuDropdown.classList.remove('active');
+          }
           alert('✅ JSON carregado com sucesso!');
         } catch(err) {
           alert('❌ Erro ao carregar JSON: ' + err.message);
@@ -6479,10 +6484,12 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
         container.appendChild(criarElementoItem(item, null));
       });
       
-      // Configurar drag and drop após renderizar
-      setTimeout(() => {
-        configurarDragDropDocumentos();
-      }, 100);
+      // Configurar drag and drop após renderizar (se estiver em modo de edição)
+      if (modoEdicao) {
+        setTimeout(() => {
+          configurarDragDropDocumentos();
+        }, 100);
+      }
     }
 
     function criarElementoItem(item, pastaParenteId) {
@@ -6890,6 +6897,16 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       pastasItens.forEach((pasta, index) => {
         pasta.draggable = true;
         pasta.dataset.index = index;
+        
+        // Remover event listeners antigos para evitar duplicação
+        pasta.removeEventListener('dragstart', handleDragStartDoc);
+        pasta.removeEventListener('dragend', handleDragEndDoc);
+        pasta.removeEventListener('dragover', handleDragOverDoc);
+        pasta.removeEventListener('drop', handleDropDoc);
+        pasta.removeEventListener('dragenter', handleDragEnterDoc);
+        pasta.removeEventListener('dragleave', handleDragLeaveDoc);
+        
+        // Adicionar event listeners
         pasta.addEventListener('dragstart', handleDragStartDoc);
         pasta.addEventListener('dragend', handleDragEndDoc);
         pasta.addEventListener('dragover', handleDragOverDoc);
@@ -6901,6 +6918,14 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       docItens.forEach((doc, index) => {
         doc.draggable = true;
         doc.dataset.index = index;
+        
+        // Remover event listeners antigos para evitar duplicação
+        doc.removeEventListener('dragstart', handleDragStartDoc);
+        doc.removeEventListener('dragend', handleDragEndDoc);
+        doc.removeEventListener('dragover', handleDragOverDoc);
+        doc.removeEventListener('drop', handleDropDoc);
+        
+        // Adicionar event listeners
         doc.addEventListener('dragstart', handleDragStartDoc);
         doc.addEventListener('dragend', handleDragEndDoc);
         doc.addEventListener('dragover', handleDragOverDoc);
@@ -6910,6 +6935,11 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       // Configurar drop zones para conteúdo de pastas
       const pastasConteudo = document.querySelectorAll('.pasta-conteudo');
       pastasConteudo.forEach(conteudo => {
+        // Remover event listeners antigos para evitar duplicação
+        conteudo.removeEventListener('dragover', handleDragOverPastaConteudo);
+        conteudo.removeEventListener('drop', handleDropPastaConteudo);
+        
+        // Adicionar event listeners
         conteudo.addEventListener('dragover', handleDragOverPastaConteudo);
         conteudo.addEventListener('drop', handleDropPastaConteudo);
       });
