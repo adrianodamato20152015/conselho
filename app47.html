@@ -993,6 +993,13 @@
       background: #f8f9fa; border-radius: 8px; 
     }
     
+    .mensagem-vazio-docs {
+      text-align: center; padding: 25px; 
+      color: #6c757d; font-style: italic; 
+      background: #f8f9fa; border-radius: 8px;
+      font-size: 1.1em;
+    }
+    
     @media (max-width: 1200px) { 
       .container { flex-direction: column; } 
       .grupo { max-height: none; } 
@@ -1366,7 +1373,7 @@
   <!-- Modal Criar/Editar Pasta -->
   <div class="modal" id="modalCriarPasta">
     <div class="modal-content">
-      <div class="modal-header" id="headerModalPasta">📂 Nova Pasta</div>
+      <div class="modal-header" id="tituloCriarPasta">📂 Nova Pasta</div>
       <input type="text" class="modal-input" id="inputNomePasta" placeholder="Nome da pasta">
       <button class="modal-btn modal-btn-primary" onclick="confirmarCriarPasta()">✅ Salvar</button>
       <button class="modal-btn modal-btn-secondary" onclick="fecharModal('modalCriarPasta')">Cancelar</button>
@@ -1376,7 +1383,7 @@
   <!-- Modal Adicionar Documento -->
   <div class="modal" id="modalAdicionarDocumento">
     <div class="modal-content">
-      <div class="modal-header" id="headerModalDocumento">📄 Novo Documento</div>
+      <div class="modal-header" id="tituloAdicionarDoc">📄 Novo Documento</div>
       <input type="text" class="modal-input" id="inputNomeDocumento" placeholder="Nome do documento">
       <input type="text" class="modal-input" id="inputLinkDocumento" placeholder="https://exemplo.com/documento.pdf">
       <p style="margin-top:8px;color:#6c757d;font-size:0.8em;">💡 Cole a URL completa do documento</p>
@@ -5473,17 +5480,6 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       `;
       document.head.appendChild(style);
       
-      const inputNomeCamara = document.getElementById('inputNomeCamara');
-      const inputEmojiCamara = document.getElementById('inputEmojiCamara');
-      
-      if (inputNomeCamara) {
-        inputNomeCamara.addEventListener('input', atualizarPreviewEmoji);
-      }
-      
-      if (inputEmojiCamara) {
-        inputEmojiCamara.addEventListener('input', atualizarPreviewEmoji);
-      }
-      
       document.getElementById('inputSenha').addEventListener('keypress', function(e) {
         if(e.key === 'Enter') verificarSenha();
       });
@@ -5807,7 +5803,7 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       return null;
     }
 
-    function removerItem(itemId, pastaParenteId) {
+    function removerItem(itemId, pastaParenteId = null) {
       if(!modoEdicao) return;
       
       const item = encontrarItemPorId(documentosData.estrutura, itemId);
@@ -5823,17 +5819,23 @@ function gerarPDFRelatorio(opcoesSelecionadas) {
       
       if(!confirm(mensagem)) return;
       
-      if(pastaParenteId) {
-        // Remover de pasta específica
-        const pastaParente = encontrarItemPorId(documentosData.estrutura, pastaParenteId);
-        if(pastaParente) {
-          pastaParente.filhos = pastaParente.filhos.filter(f => f.id !== itemId);
+      // Função auxiliar para remover recursivamente
+      function removerDaEstrutura(estrutura, id) {
+        for(let i = 0; i < estrutura.length; i++) {
+          if(estrutura[i].id === id) {
+            estrutura.splice(i, 1);
+            return true;
+          }
+          if(estrutura[i].filhos && estrutura[i].filhos.length > 0) {
+            if(removerDaEstrutura(estrutura[i].filhos, id)) {
+              return true;
+            }
+          }
         }
-      } else {
-        // Remover da raiz
-        documentosData.estrutura = documentosData.estrutura.filter(f => f.id !== itemId);
+        return false;
       }
       
+      removerDaEstrutura(documentosData.estrutura, itemId);
       alert('✅ Item removido!');
       renderizarDocumentos();
     }
